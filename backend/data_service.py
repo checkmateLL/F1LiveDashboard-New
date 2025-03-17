@@ -2,9 +2,10 @@ import sqlite3
 import logging
 import os
 from typing import List, Dict, Any, Optional
+import pandas as pd
 
-from config import SQLITE_DB_PATH
-from redis_live_service import RedisLiveDataService
+from backend.config import SQLITE_DB_PATH
+from backend.redis_live_service import RedisLiveDataService
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -256,7 +257,7 @@ class F1DataService:
                 JOIN results r ON d.id = r.driver_id
                 JOIN sessions s ON r.session_id = s.id
                 JOIN events e ON s.event_id = e.id
-                WHERE e.year = ? AND s.session_type = 'race'
+                WHERE e.year = ? AND (s.session_type = 'race' OR s.session_type = 'sprint')
                 GROUP BY d.id
                 ORDER BY total_points DESC
             """, (year,))
@@ -276,4 +277,135 @@ class F1DataService:
             logger.error(f"Error getting driver standings: {e}")
             return []
 
-    # Additional methods for race results, telemetry, weather, etc., would be implemented similarly.
+    def get_constructor_standings(self, year: int) -> List[Dict[str, Any]]:
+        cursor = self._get_sqlite_cursor()
+        if not cursor:
+            return []
+        try:
+            cursor.execute("""
+                SELECT t.id, t.name as team_name, t.team_color,
+                       SUM(r.points) as total_points
+                FROM teams t
+                JOIN drivers d ON t.id = d.team_id
+                JOIN results r ON d.id = r.driver_id
+                JOIN sessions s ON r.session_id = s.id
+                JOIN events e ON s.event_id = e.id
+                WHERE e.year = ? AND (s.session_type = 'race' OR s.session_type = 'sprint')
+                GROUP BY t.id
+                ORDER BY total_points DESC
+            """, (year,))
+            standings = []
+            for i, row in enumerate(cursor.fetchall()):
+                standings.append({
+                    'position': i + 1,
+                    'team_id': row['id'],
+                    'team_name': row['team_name'],
+                    'team_color': row['team_color'],
+                    'points': row['total_points']
+                })
+            return standings
+        except sqlite3.Error as e:
+            logger.error(f"Error getting constructor standings: {e}")
+            return []
+
+    def get_race_results(self, session_id: int) -> List[Dict[str, Any]]:
+        cursor = self._get_sqlite_cursor()
+        if not cursor:
+            return []
+        try:
+            cursor.execute("""
+                SELECT r.position, r.grid_position, r.points, r.status, r.race_time,
+                       d.full_name as driver_name, d.abbreviation, d.driver_number,
+                       t.name as team_name, t.team_color
+                FROM results r
+                JOIN drivers d ON r.driver_id = d.id
+                JOIN teams t ON d.team_id = t.id
+                WHERE r.session_id = ?
+                ORDER BY r.position
+            """, (session_id,))
+            results = []
+            for row in cursor.fetchall():
+                results.append({
+                    'position': row['position'],
+                    'driver_name': row['driver_name'],
+                    'abbreviation': row['abbreviation'],
+                    'driver_number': row['driver_number'],
+                    'team_name': row['team_name'],
+                    'team_color': row['team_color'],
+                    'grid_position': row['grid_position'],
+                    'points': row['points'],
+                    'status': row['status'],
+                    'race_time': row['race_time']
+                })
+            return results
+        except sqlite3.Error as e:
+            logger.error(f"Error getting race results: {e}")
+            return []
+
+    def get_lap_times(self, session_id: int, driver_id: Optional[int] = None) -> pd.DataFrame:
+        cursor = self._get_sqlite_cursor()
+        if not cursor:
+            return pd.DataFrame()
+        
+        try:
+            query = """
+                SELECT l.lap_number, l.lap_time, l.sector1_time, l.sector2_time, l.sector3_time,
+                       l.compound, l.tyre_life, l.is_personal_best, l.stint, l.track_status,
+                       l.deleted, l.deleted_reason, l.position,
+                       d.full_name as driver_name, d.abbreviation, d.driver_number,
+                       t.name as team_name, t.team_color
+                FROM laps l
+                JOIN drivers d ON l.driver_id = d.id
+                JOIN teams t ON d.team_id = t.id
+                WHERE l.session_id = ?
+            """
+            params = [session_id]
+            
+            if driver_id:
+                query += " AND l.driver_id = ?"
+                params.append(driver_id)
+                
+            query += " ORDER BY l.lap_number, l.position"
+            
+            df = pd.read_sql_query(query, self.sqlite_conn, params=params)
+            return df
+            
+        except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
+            logger.error(f"Error getting lap times: {e}")
+            return pd.DataFrame()
+
+    def get_telemetry(self, session_id: int, driver_id: int, lap_number: int) -> pd.DataFrame:
+        cursor = self._get_sqlite_cursor()
+        if not cursor:
+            return pd.DataFrame()
+        
+        try:
+            query = """
+                SELECT time, session_time, speed, rpm, gear, throttle, brake, drs,
+                       x, y, z, d.full_name as driver_name, t.team_color
+                FROM telemetry tel
+                JOIN drivers d ON tel.driver_id = d.id
+                JOIN teams t ON d.team_id = t.id
+                WHERE tel.session_id = ? AND tel.driver_id = ? AND tel.lap_number = ?
+                ORDER BY tel.time
+            """
+            
+            df = pd.read_sql_query(query, self.sqlite_conn, params=(session_id, driver_id, lap_number))
+            return df
+            
+        except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
+            logger.error(f"Error getting telemetry data: {e}")
+            return pd.DataFrame()
+
+    def get_track_weather(self, latitude: float, longitude: float):
+        """Fetch live track weather using Open-Meteo API or from Redis for current session."""
+        if self.redis_service:
+            live_weather = self.redis_service.get_live_weather()
+            if live_weather:
+                return live_weather
+        
+        # Fall back to the weather service if no Redis data
+        from backend.weather import get_track_weather as fetch_weather
+        return fetch_weather(latitude, longitude)
+
+    # Add other methods for telemetry, lap times, etc.

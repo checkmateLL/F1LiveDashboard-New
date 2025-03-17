@@ -4,8 +4,10 @@ import logging
 import redis
 import json
 import requests
+import random  # For demo data
+from datetime import datetime
 
-from config import (
+from backend.config import (
     REDIS_HOST,
     REDIS_PORT,
     REDIS_DB,
@@ -31,6 +33,9 @@ class RedisLiveDataService:
         )
         self._polling_thread = None
         self._stop_event = threading.Event()
+        self._current_event = None
+        self._current_session = None
+        self._race_status = None
 
     def start_polling(self):
         if self._polling_thread is None or not self._polling_thread.is_alive():
@@ -46,87 +51,20 @@ class RedisLiveDataService:
             logger.info("Stopped live data polling thread.")
 
     def _poll(self):
+        """Poll for live data and update Redis."""
         while not self._stop_event.is_set():
             try:
-                # Update live session data (dummy example)
-                live_session = {
-                    "session": "Race",
-                    "year": 2021,
-                    "timestamp": time.time()
-                }
-                self.redis_client.set("live_session", json.dumps(live_session))
+                # Simulate live session (in a real implementation, this would poll from the F1 API)
+                # For now, 30% chance of a live session
+                is_live = random.random() < 0.3
                 
-                # Fetch live weather data from Open-Meteo
-                response = requests.get(
-                    WEATHER_SERVICE_URL,
-                    params={
-                        "latitude": WEATHER_LATITUDE,
-                        "longitude": WEATHER_LONGITUDE,
-                        "current_weather": "true"
-                    },
-                    timeout=5
-                )
-                if response.status_code == 200:
-                    current_weather = response.json().get("current_weather", {})
-                    self.redis_client.set("live_weather", json.dumps(current_weather))
-                else:
-                    logger.error(f"Failed to fetch weather data: {response.status_code}")
-                
-                time.sleep(1)
-            except Exception as e:
-                logger.error(f"Error during live data polling: {e}")
-                time.sleep(5)
-
-    def get_live_session(self):
-        try:
-            data = self.redis_client.get("live_session")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving live session: {e}")
-        return None
-
-    def get_live_standings(self):
-        try:
-            data = self.redis_client.get("live_standings")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving live standings: {e}")
-        return None
-
-    def get_live_weather(self):
-        try:
-            data = self.redis_client.get("live_weather")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving live weather: {e}")
-        return None
-
-    def get_live_timing(self):
-        try:
-            data = self.redis_client.get("live_timing")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving live timing: {e}")
-        return []
-
-    def get_live_tires(self):
-        try:
-            data = self.redis_client.get("live_tires")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving live tires: {e}")
-        return {}
-
-    def get_track_status(self):
-        try:
-            data = self.redis_client.get("track_status")
-            if data:
-                return json.loads(data)
-        except Exception as e:
-            logger.error(f"Error retrieving track status: {e}")
-        return None
+                if is_live:
+                    # Get current simulated event/session
+                    if not self._current_event:
+                        self._update_current_event()
+                    
+                    if not self._current_session:
+                        self._update_current_session()
+                    
+                    # Update race status
+                    self._update_race_status()
