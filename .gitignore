@@ -4,7 +4,7 @@ __pycache__/
 *.pyd
 venv/
 .env
-.fastf1_cache/
+fastf1_cache/
 f1_data.db
 f1_data_full_2025.db
 *.sqlite
