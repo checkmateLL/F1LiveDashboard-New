@@ -82,13 +82,13 @@ def analytics():
                             # Redirect to appropriate analysis page
                             if analysis_type == "Lap Time Comparison":
                                 st.session_state['page'] = 'Lap Times'
-                                st.experimental_rerun()
+                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
                             elif analysis_type == "Driver Performance":
                                 st.session_state['page'] = 'Performance Analysis'
-                                st.experimental_rerun()
+                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
                             elif analysis_type == "Tyre Strategy":
                                 st.session_state['page'] = 'Performance Analysis'
-                                st.experimental_rerun()
+                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
                             else:
                                 # Show placeholder for now
                                 st.write("This analysis type is under development.")
@@ -134,4 +134,3 @@ def analytics():
     
     except Exception as e:
         st.error(f"Error loading analytics data: {e}")
-        

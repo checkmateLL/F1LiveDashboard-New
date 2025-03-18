@@ -34,13 +34,13 @@ def standings():
             tab1, tab2, tab3 = st.tabs(["Driver Standings", "Constructor Standings", "Season Progress"])
             
             with tab1:
-                show_driver_standings(year)
+                show_driver_standings(db, year)
             
             with tab2:
-                show_constructor_standings(year)
+                show_constructor_standings(db, year)
             
             with tab3:
-                show_season_progress(year)
+                show_season_progress(db, year)
     
     except Exception as e:
         st.error(f"Error loading standings: {e}")
@@ -68,6 +68,29 @@ def show_driver_standings(db, year):
         params=(year,)
     )
     
+    # Ensure all drivers are included, even those with zero points
+    all_drivers = db.execute_query(
+        """
+        SELECT DISTINCT d.id, d.full_name as driver_name, d.abbreviation, d.driver_number,
+               t.name as team_name, t.team_color, 0 as total_points
+        FROM drivers d
+        JOIN teams t ON d.team_id = t.id
+        WHERE d.year = ?
+        """,
+        params=(year,)
+    )
+    
+    # Get existing driver IDs
+    existing_ids = set(driver_standings['id'].tolist() if not driver_standings.empty else [])
+    
+    # Add missing drivers with zero points
+    if not all_drivers.empty:
+        missing_drivers = all_drivers[~all_drivers['id'].isin(existing_ids)]
+        
+        if not driver_standings.empty and not missing_drivers.empty:
+            driver_standings = pd.concat([driver_standings, missing_drivers], ignore_index=True)
+            driver_standings = driver_standings.sort_values('total_points', ascending=False)
+    
     if not driver_standings.empty:
         # Add position column
         driver_standings = driver_standings.reset_index(drop=True)
@@ -80,7 +103,15 @@ def show_driver_standings(db, year):
             y='total_points',
             title=f"{year} Drivers' Championship Standings",
             color='team_name',
-            color_discrete_map={team: color for team, color in zip(driver_standings['team_name'], driver_standings['team_color'])}
+            color_discrete_map={team: add_hash_to_color(color) for team, color in zip(driver_standings['team_name'], driver_standings['team_color'])}
+        )
+        
+        # Update the bar labels - just show the points value
+        fig.update_traces(
+            texttemplate='%{y}',  # Show the points value
+            textposition='outside',
+            textfont=dict(color='white'),
+            hovertemplate='<b>%{x}</b><br>Points: %{y}<br>Team: %{marker.color}'
         )
         
         fig.update_layout(
@@ -89,16 +120,18 @@ def show_driver_standings(db, year):
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='white'),
-            height=500
+            height=600,
+            xaxis={'tickangle': 45}  # Angle the driver names for better readability
         )
         
         st.plotly_chart(fig, use_container_width=True)
         
-        # Display the standings table
-        display_df = driver_standings[['position', 'driver_name', 'team_name', 'total_points']].copy()
-        display_df.columns = ['Position', 'Driver', 'Team', 'Points']
-        
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        # Add a checkbox to toggle the detailed table view
+        if st.checkbox("Show detailed standings table", value=False):
+            display_df = driver_standings[['position', 'driver_name', 'team_name', 'total_points']].copy()
+            display_df.columns = ['Position', 'Driver', 'Team', 'Points']
+            
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
         
         # Show the championship leader and gap to second
         if len(driver_standings) >= 2:
@@ -152,7 +185,10 @@ def show_constructor_standings(db, year):
                 x=[team['team_name']],
                 y=[team['total_points']],
                 name=team['team_name'],
-                marker_color=team['team_color']
+                marker_color=add_hash_to_color(team['team_color']),
+                text=[team['total_points']],  # Just show the points
+                textposition="outside",
+                textfont=dict(color="white")
             ))
         
         fig.update_layout(
@@ -168,11 +204,12 @@ def show_constructor_standings(db, year):
         
         st.plotly_chart(fig, use_container_width=True)
         
-        # Display the standings table
-        display_df = constructor_standings[['position', 'team_name', 'total_points']].copy()
-        display_df.columns = ['Position', 'Team', 'Points']
-        
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        # Add a checkbox to toggle the detailed table view
+        if st.checkbox("Show detailed constructors table", value=False):
+            display_df = constructor_standings[['position', 'team_name', 'total_points']].copy()
+            display_df.columns = ['Position', 'Team', 'Points']
+            
+            st.dataframe(display_df, use_container_width=True, hide_index=True)
         
         # Add more metrics and insights
         if len(constructor_standings) >= 2:
@@ -216,7 +253,7 @@ def show_constructor_standings(db, year):
                         values='driver_points',
                         names='full_name',
                         title=f"Points Distribution within {leader['team_name']}",
-                        color_discrete_sequence=[leader['team_color'], lighten_color(leader['team_color'], 0.3)]
+                        color_discrete_sequence=[add_hash_to_color(leader['team_color']), add_hash_to_color(lighten_color(leader['team_color'], 0.3))]
                     )
                     
                     fig.update_layout(
@@ -356,23 +393,118 @@ def show_season_progress(db, year):
     if driver_progress:
         driver_progress_df = pd.DataFrame(driver_progress)
         
-        fig = px.line(
-            driver_progress_df,
-            x='Round',
-            y='Points',
-            color='Driver',
-            title="Drivers' Championship Progress",
-            color_discrete_map={driver: color for driver, color in zip(driver_progress_df['Driver'].unique(), driver_progress_df['Color'].unique())},
-            markers=True
-        )
+        # Filter to only show completed rounds
+        # Get the maximum completed round from the data
+        max_round = max(driver_progress_df['Round']) if not driver_progress_df.empty else 0
         
+        # Create a figure with steps instead of smooth lines
+        fig = go.Figure()
+        
+        # Get all drivers - not just top 5
+        all_drivers_query = """
+            SELECT DISTINCT d.id, d.full_name as driver_name, t.team_color
+            FROM drivers d
+            JOIN teams t ON d.team_id = t.id
+            WHERE d.year = ?
+            ORDER BY d.full_name
+        """
+        all_drivers = db.execute_query(all_drivers_query, params=(year,))
+        
+        # For each driver, create a trace
+        for _, driver_row in all_drivers.iterrows():
+            driver_name = driver_row['driver_name']
+            driver_id = driver_row['id']
+            
+            # Find driver's data in progress data
+            driver_data = driver_progress_df[driver_progress_df['Driver'] == driver_name]
+            
+            # If no data found, we need to create data points with 0 points
+            if driver_data.empty:
+                # Get points for this driver from race results
+                points_query = f"""
+                    SELECT e.round_number, SUM(r.points) as points
+                    FROM results r
+                    JOIN sessions s ON r.session_id = s.id
+                    JOIN events e ON s.event_id = e.id
+                    JOIN drivers d ON r.driver_id = d.id
+                    WHERE d.id = ? AND e.year = ? AND e.round_number <= ?
+                    AND (s.session_type = 'race' OR s.session_type = 'sprint')
+                    GROUP BY e.round_number
+                    ORDER BY e.round_number
+                """
+                points_data = db.execute_query(points_query, params=(driver_id, year, max_round))
+                
+                # If still no data, they have scored 0 points
+                if points_data.empty:
+                    # Create a trace with a single point at round 1 with 0 points
+                    if max_round > 0:
+                        new_data = {
+                            'Driver': driver_name,
+                            'Round': max_round,
+                            'Points': 0,
+                            'Color': driver_row['team_color'],
+                            'Race': 'N/A'
+                        }
+                        driver_data = pd.DataFrame([new_data])
+            
+            # Only create a trace if we have data
+            if not driver_data.empty:
+                driver_data = driver_data.sort_values('Round')
+                color = add_hash_to_color(driver_data['Color'].iloc[0])
+                
+                # Create cumulative points for each round
+                rounds = range(1, max_round + 1)
+                cumulative_points = []
+                total = 0
+                
+                # Get race names for hover info
+                races_query = """
+                    SELECT round_number, event_name
+                    FROM events
+                    WHERE year = ? AND round_number <= ?
+                    ORDER BY round_number
+                """
+                races = db.execute_query(races_query, params=(year, max_round))
+                race_names = {r['round_number']: r['event_name'] for _, r in races.iterrows()}
+                
+                # Calculate cumulative points through each round
+                for round_num in rounds:
+                    # Find points for this round
+                    round_data = driver_data[driver_data['Round'] == round_num]
+                    if not round_data.empty:
+                        # If there's a result for this round, add the points
+                        total = round_data['Points'].iloc[0]
+                    cumulative_points.append(total)
+                
+                # Only add the trace if the driver has points or we're showing all drivers
+                if max(cumulative_points) > 0 or len(all_drivers) <= 10:  # Show all if 10 or fewer drivers
+                    fig.add_trace(go.Scatter(
+                        x=list(rounds),
+                        y=cumulative_points,
+                        mode='lines+markers',
+                        name=driver_name,
+                        line=dict(color=color, shape='hv'),  # 'hv' creates step-like horizontal-then-vertical lines
+                        marker=dict(size=8, color=color),
+                        hovertemplate="<b>%{fullData.name}</b><br>Round: %{x}<br>Points: %{y}<br>Race: %{customdata}",
+                        customdata=[race_names.get(r, 'Unknown') for r in rounds]
+                    ))
+        
+        # Update layout
         fig.update_layout(
+            title="Drivers' Championship Progress",
             xaxis_title="Round",
             yaxis_title="Points",
+            xaxis=dict(
+                tickmode='linear',
+                tick0=1,
+                dtick=1,
+                range=[0.5, max_round + 0.5]  # Only show completed rounds
+            ),
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='white'),
-            height=500
+            height=600,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -380,26 +512,125 @@ def show_season_progress(db, year):
     if team_progress:
         team_progress_df = pd.DataFrame(team_progress)
         
-        fig = px.line(
-            team_progress_df,
-            x='Round',
-            y='Points',
-            color='Team',
-            title="Constructors' Championship Progress",
-            color_discrete_map={team: color for team, color in zip(team_progress_df['Team'].unique(), team_progress_df['Color'].unique())},
-            markers=True
-        )
+        # Filter to only show completed rounds
+        # Get the maximum completed round from the data
+        max_round = max(team_progress_df['Round']) if not team_progress_df.empty else 0
         
+        # Create a figure with steps instead of smooth lines
+        fig = go.Figure()
+        
+        # Get all teams - not just top 5
+        all_teams_query = """
+            SELECT DISTINCT t.id, t.name as team_name, t.team_color
+            FROM teams t
+            WHERE t.year = ?
+            ORDER BY t.name
+        """
+        all_teams = db.execute_query(all_teams_query, params=(year,))
+        
+        # For each team, create a trace
+        for _, team_row in all_teams.iterrows():
+            team_name = team_row['team_name']
+            team_id = team_row['id']
+            
+            # Find team's data in progress data
+            team_data = team_progress_df[team_progress_df['Team'] == team_name]
+            
+            # If no data found, we need to create data points with 0 points
+            if team_data.empty:
+                # Get points for this team from race results
+                points_query = f"""
+                    SELECT e.round_number, SUM(r.points) as points
+                    FROM results r
+                    JOIN sessions s ON r.session_id = s.id
+                    JOIN events e ON s.event_id = e.id
+                    JOIN drivers d ON r.driver_id = d.id
+                    WHERE d.team_id = ? AND e.year = ? AND e.round_number <= ?
+                    AND (s.session_type = 'race' OR s.session_type = 'sprint')
+                    GROUP BY e.round_number
+                    ORDER BY e.round_number
+                """
+                points_data = db.execute_query(points_query, params=(team_id, year, max_round))
+                
+                # If still no data, they have scored 0 points
+                if points_data.empty:
+                    # Create a trace with a single point at the max round with 0 points
+                    if max_round > 0:
+                        new_data = {
+                            'Team': team_name,
+                            'Round': max_round,
+                            'Points': 0,
+                            'Color': team_row['team_color'],
+                            'Race': 'N/A'
+                        }
+                        team_data = pd.DataFrame([new_data])
+            
+            # Only create a trace if we have data
+            if not team_data.empty:
+                team_data = team_data.sort_values('Round')
+                color = add_hash_to_color(team_data['Color'].iloc[0])
+                
+                # Create cumulative points for each round
+                rounds = range(1, max_round + 1)
+                cumulative_points = []
+                total = 0
+                
+                # Get race names for hover info
+                races_query = """
+                    SELECT round_number, event_name
+                    FROM events
+                    WHERE year = ? AND round_number <= ?
+                    ORDER BY round_number
+                """
+                races = db.execute_query(races_query, params=(year, max_round))
+                race_names = {r['round_number']: r['event_name'] for _, r in races.iterrows()}
+                
+                # Calculate cumulative points through each round
+                for round_num in rounds:
+                    # Find points for this round
+                    round_data = team_data[team_data['Round'] == round_num]
+                    if not round_data.empty:
+                        # If there's a result for this round, add the points
+                        total = round_data['Points'].iloc[0]
+                    cumulative_points.append(total)
+                
+                # Always add the trace for teams
+                fig.add_trace(go.Scatter(
+                    x=list(rounds),
+                    y=cumulative_points,
+                    mode='lines+markers',
+                    name=team_name,
+                    line=dict(color=color, shape='hv'),  # 'hv' creates step-like horizontal-then-vertical lines
+                    marker=dict(size=8, color=color),
+                    hovertemplate="<b>%{fullData.name}</b><br>Round: %{x}<br>Points: %{y}<br>Race: %{customdata}",
+                    customdata=[race_names.get(r, 'Unknown') for r in rounds]
+                ))
+        
+        # Update layout
         fig.update_layout(
+            title="Constructors' Championship Progress",
             xaxis_title="Round",
             yaxis_title="Points",
+            xaxis=dict(
+                tickmode='linear',
+                tick0=1,
+                dtick=1,
+                range=[0.5, max_round + 0.5]  # Only show completed rounds
+            ),
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='white'),
-            height=500
+            height=600,
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5)
         )
         
         st.plotly_chart(fig, use_container_width=True)
+
+def add_hash_to_color(color_str):
+    """Ensure a color string starts with # for hex colors."""
+    if color_str and isinstance(color_str, str) and not color_str.startswith('#') and not color_str.startswith('rgb'):
+        return f"#{color_str}"
+    return color_str
 
 def lighten_color(hex_color, factor=0.3):
     """Lighten a hex color by a factor."""
@@ -407,14 +638,18 @@ def lighten_color(hex_color, factor=0.3):
     hex_color = hex_color.lstrip('#')
     
     # Convert hex to RGB
-    r = int(hex_color[0:2], 16)
-    g = int(hex_color[2:4], 16)
-    b = int(hex_color[4:6], 16)
-    
-    # Lighten
-    r = min(255, r + int((255 - r) * factor))
-    g = min(255, g + int((255 - g) * factor))
-    b = min(255, b + int((255 - b) * factor))
-    
-    # Convert back to hex
-    return f"#{r:02x}{g:02x}{b:02x}"
+    try:
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        # Lighten
+        r = min(255, r + int((255 - r) * factor))
+        g = min(255, g + int((255 - g) * factor))
+        b = min(255, b + int((255 - b) * factor))
+        
+        # Convert back to hex
+        return f"#{r:02x}{g:02x}{b:02x}"
+    except (ValueError, IndexError):
+        # If there's an error processing the color, return a default
+        return "#CCCCCC"

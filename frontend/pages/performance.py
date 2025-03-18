@@ -8,6 +8,13 @@ from datetime import datetime
 
 from backend.db_connection import get_db_handler
 
+# Helper function for color formatting
+def add_hash_to_color(color_str):
+    """Ensure a color string starts with # for hex colors."""
+    if color_str and isinstance(color_str, str) and not color_str.startswith('#') and not color_str.startswith('rgb'):
+        return f"#{color_str}"
+    return color_str
+
 def performance():
     st.title("📊 Performance Analysis")
     
@@ -38,16 +45,16 @@ def performance():
             ])
             
             with tab1:
-                show_driver_performance(year)
+                show_driver_performance(db, year)
             
             with tab2:
-                show_team_performance(year)
+                show_team_performance(db, year)
             
             with tab3:
-                show_tire_strategy(year)
+                show_tire_strategy(db, year)
             
             with tab4:
-                show_pit_stop_analysis(year)
+                show_pit_stop_analysis(db, year)
     
     except Exception as e:
         st.error(f"Error loading performance analysis: {e}") 
@@ -67,7 +74,7 @@ def show_driver_performance(db, year):
         WHERE d.year = ?
         ORDER BY t.name, d.full_name
         """,        
-        (year,)
+        params=(year,)
     )
     
     if drivers_df.empty:
@@ -188,7 +195,7 @@ def show_driver_performance(db, year):
                 theta=categories,
                 fill='toself',
                 name=row['Driver'],
-                line_color=row['Color']
+                line_color=add_hash_to_color(row['Color'])
             ))
         
         fig.update_layout(
@@ -234,7 +241,7 @@ def show_driver_performance(db, year):
                         y=race_results['position'],
                         mode='lines+markers',
                         name='Position',
-                        line=dict(color=driver_color, width=3),
+                        line=dict(color=add_hash_to_color(driver_color), width=3),
                         hovertemplate=(
                             "Round: %{x}<br>" +
                             "Position: %{y}<br>" +
@@ -374,7 +381,7 @@ def show_team_performance(db, year):
             x='Team',
             y='Points',
             color='Team',
-            color_discrete_map={team: color for team, color in zip(metrics_df['Team'], metrics_df['Color'])},
+            color_discrete_map={team: add_hash_to_color(color) for team, color in zip(metrics_df['Team'], metrics_df['Color'])},
             title="Constructor Points Comparison"
         )
         
@@ -394,7 +401,7 @@ def show_team_performance(db, year):
         st.subheader("Team Efficiency")
         
         # Calculate points per entry
-        metrics_df['Points per Entry'] = metrics_df['Points'] / metrics_df['Entries']
+        metrics_df['Points per Entry'] = metrics_df['Points'] / metrics_df['Entries'].apply(lambda x: max(1, x))
         
         # Create points efficiency chart
         fig = px.bar(
@@ -402,7 +409,7 @@ def show_team_performance(db, year):
             x='Team',
             y='Points per Entry',
             color='Team',
-            color_discrete_map={team: color for team, color in zip(metrics_df['Team'], metrics_df['Color'])},
+            color_discrete_map={team: add_hash_to_color(color) for team, color in zip(metrics_df['Team'], metrics_df['Color'])},
             title="Points per Race Entry"
         )
         
@@ -461,7 +468,7 @@ def show_team_performance(db, year):
                     
                     points_data = db.execute_query(
                         query,                        
-                        params=params
+                        params=tuple(params)
                     )
                     
                     points = float(points_data['cumulative_points'].iloc[0]) if not points_data.empty and not pd.isna(points_data['cumulative_points'].iloc[0]) else 0
@@ -478,20 +485,55 @@ def show_team_performance(db, year):
             if team_progress:
                 progress_df = pd.DataFrame(team_progress)
                 
-                fig = px.line(
-                    progress_df,
-                    x='Round',
-                    y='Points',
-                    color='Team',
-                    color_discrete_map={team: color for team, color in zip(progress_df['Team'].unique(), progress_df['Color'].unique())},
-                    title="Constructors' Points Progress",
-                    markers=True,
-                    hover_data=['Event']
+                # Create a figure with steps instead of smooth lines
+                fig = go.Figure()
+                
+                # Get all unique teams
+                unique_teams = progress_df['Team'].unique()
+                
+                # Max round to display (only show completed rounds)
+                max_round = events['round_number'].max()
+                completed_rounds = db.execute_query(
+                    """
+                    SELECT MAX(e.round_number) as max_round
+                    FROM results r
+                    JOIN sessions s ON r.session_id = s.id
+                    JOIN events e ON s.event_id = e.id
+                    WHERE e.year = ? AND s.session_type = 'race'
+                    """,
+                    params=(year,)
                 )
+                if not completed_rounds.empty and not pd.isna(completed_rounds['max_round'].iloc[0]):
+                    max_round = min(max_round, completed_rounds['max_round'].iloc[0])
+                
+                for team in unique_teams:
+                    team_data = progress_df[progress_df['Team'] == team]
+                    team_data = team_data[team_data['Round'] <= max_round].sort_values('Round')
+                    
+                    if not team_data.empty:
+                        color = add_hash_to_color(team_data['Color'].iloc[0])
+                        
+                        fig.add_trace(go.Scatter(
+                            x=team_data['Round'],
+                            y=team_data['Points'],
+                            mode='lines+markers',
+                            name=team,
+                            line=dict(color=color, shape='hv'),  # 'hv' creates step-like horizontal-then-vertical lines
+                            marker=dict(size=8, color=color),
+                            hovertemplate="<b>%{fullData.name}</b><br>Round: %{x}<br>Points: %{y}<br>Race: %{customdata}",
+                            customdata=team_data['Event']
+                        ))
                 
                 fig.update_layout(
+                    title="Constructors' Points Progress",
                     xaxis_title="Round",
                     yaxis_title="Cumulative Points",
+                    xaxis=dict(
+                        tickmode='linear',
+                        tick0=1,
+                        dtick=1,
+                        range=[0.5, max_round + 0.5]  # Only show completed rounds
+                    ),
                     plot_bgcolor='rgba(0,0,0,0)',
                     paper_bgcolor='rgba(0,0,0,0)',
                     font=dict(color='white'),
@@ -588,11 +630,11 @@ def show_tire_strategy(db, year):
     
     # Define a color map for tire compounds
     compound_colors = {
-        'S': 'red',
-        'M': 'yellow',
-        'H': 'white',
-        'I': 'green',
-        'W': 'blue'
+        'S': '#FF0000',  # Red
+        'M': '#FFFF00',  # Yellow
+        'H': '#FFFFFF',  # White
+        'I': '#00FF00',  # Green
+        'W': '#0000FF'   # Blue
     }
     
     fig = px.bar(
@@ -649,7 +691,7 @@ def show_tire_strategy(db, year):
         # Add a bar for each stint
         for _, stint in stint_data.iterrows():
             # Choose color based on compound
-            color = compound_colors.get(stint['compound'], stint['team_color'])
+            color = compound_colors.get(stint['compound'], add_hash_to_color(stint['team_color']))
             
             fig.add_trace(go.Bar(
                 x=[stint['stint_length']],
@@ -763,7 +805,7 @@ def show_pit_stop_analysis(db, year):
                 x='team_name',
                 y='avg_pit_stops_per_race',
                 color='team_name',
-                color_discrete_map={team: color for team, color in zip(pit_stops_by_team['team_name'], pit_stops_by_team['team_color'])},
+                color_discrete_map={team: add_hash_to_color(color) for team, color in zip(pit_stops_by_team['team_name'], pit_stops_by_team['team_color'])},
                 title="Average Pit Stops per Race by Team"
             )
             
@@ -834,7 +876,7 @@ def show_pit_stop_analysis(db, year):
                 x='driver_name',
                 y='pit_stop_count',
                 color='team_name',
-                color_discrete_map={team: color for team, color in zip(driver_pit_stops['team_name'].unique(), driver_pit_stops['team_color'].unique())},
+                color_discrete_map={team: add_hash_to_color(color) for team, color in zip(driver_pit_stops['team_name'].unique(), driver_pit_stops['team_color'].unique())},
                 title=f"Pit Stops by Driver - {selected_event}"
             )
             
@@ -881,7 +923,7 @@ def show_pit_stop_analysis(db, year):
                     x='pit_lap',
                     y='driver_name',
                     color='team_name',
-                    color_discrete_map={team: color for team, color in zip(pit_stop_laps['team_name'].unique(), pit_stop_laps['team_color'].unique())},
+                    color_discrete_map={team: add_hash_to_color(color) for team, color in zip(pit_stop_laps['team_name'].unique(), pit_stop_laps['team_color'].unique())},
                     title=f"Pit Stop Timing - {selected_event}",
                     size=[10] * len(pit_stop_laps),
                     hover_data=['stint']
@@ -897,3 +939,5 @@ def show_pit_stop_analysis(db, year):
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No pit stop data available for this race.")
