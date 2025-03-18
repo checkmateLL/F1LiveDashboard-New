@@ -5,7 +5,7 @@ def create_navbar():
     
     # Container for horizontal nav
     with st.container():
-        cols = st.columns([1, 1, 1, 1, 1, 1, 1, 1])
+        cols = st.columns([1, 1, 1, 1, 1, 1, 1, 1, 1])
         
         # Nav items with icons
         selected = None
@@ -26,6 +26,8 @@ def create_navbar():
             selected = "Telemetry Analysis"
         if cols[7].button("🏆 Standings"):
             selected = "Standings"
+        if cols[8].button("📅 Event Schedule"):  # **Added Event Schedule**
+            selected = "Event Schedule"
     
     # If nothing selected from navbar, use sidebar
     if not selected:
@@ -40,7 +42,8 @@ def create_navbar():
                 "Lap Times", 
                 "Telemetry Analysis", 
                 "Standings", 
-                "Performance Analysis"
+                "Performance Analysis",
+                "Event Schedule"
             ]
         )
     

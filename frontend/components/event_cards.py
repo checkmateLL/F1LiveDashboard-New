@@ -4,56 +4,44 @@ import pandas as pd
 
 def event_card(event_data, is_past=False):
     """
-    Creates a visually appealing event card for F1 events.
-    
-    Parameters:
-    - event_data: Dict containing event information (name, date, round, country, etc.)
-    - is_past: Boolean indicating if this is a past event (for visual styling)
+    Creates an event card that navigates to the appropriate page when clicked.
     """
+    event_id = event_data.get('id', 'unknown')
+
+    # Ensure Event Schedule is correctly referenced
+    page_destination = "Analytics" if is_past else "Event Schedule"
+
     # Format date
     event_date = event_data.get("event_date", "TBA")
-    if isinstance(event_date, str) and event_date != "TBA":
-        try:
-            date_obj = datetime.fromisoformat(event_date.replace('Z', '+00:00'))
-            formatted_date = date_obj.strftime("%d %b %Y")
-        except:
-            formatted_date = event_date
-    else:
-        formatted_date = "TBA"
-    
-    # Determine card style based on past/future
-    card_style = "past-event" if is_past else "future-event"
-    
-    # Create the card - made clickable by wrapping in a div with onClick
-    event_id = event_data.get('id', 'unknown')
-    card_key = f"card_{event_id}"
-    
-    # Create the card content
+    try:
+        date_obj = datetime.fromisoformat(event_date.replace('Z', '+00:00'))
+        formatted_date = date_obj.strftime("%d %b %Y")
+    except:
+        formatted_date = event_date
+
+    # Country flag
+    country_code = get_country_code(event_data.get('country', ''))
+    flag_url = f"https://flagcdn.com/w40/{country_code}.png"  # Adjusted size
+
+    # Display event card
     st.markdown(f"""
-    <div class="event-card {card_style}" id="{card_key}" 
-         onclick="window.location.href='#{event_id}'; 
-                  document.dispatchEvent(new CustomEvent('streamlit:viewEvent', 
-                  {{detail: {{eventId: {event_id}}}}}))"
-         data-event-id="{event_id}">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h3>{event_data.get('event_name', 'Unknown Event')}</h3>
-                <p>{event_data.get('country', '')} | Round {event_data.get('round_number', '?')}</p>
-                <p>{formatted_date}</p>
-            </div>
-            <div>
-                <img src="https://flagcdn.com/32x24/{get_country_code(event_data.get('country', ''))}.png" 
-                     alt="{event_data.get('country', '')}" 
-                     style="border-radius: 5px;">
-            </div>
-        </div>
+    <div class="event-card {'past-event' if is_past else 'future-event'}" 
+         style="padding: 15px; border-radius: 8px; margin-bottom: 10px; background-color: #1e1e1e;">
+        <h3>{event_data.get('event_name', 'Unknown Event')}</h3>
+        <p>{event_data.get('country', '')} | Round {event_data.get('round_number', '?')}</p>
+        <p>{formatted_date}</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Use a hidden button to capture clicks and store in session state
-    clicked = st.button(f"Select {event_data.get('event_name', 'event')}", key=f"btn_{event_id}", help="View event details")
-    
-    return clicked
+
+    # Display country flag
+    st.image(flag_url, width=40)
+
+    # Fix: Ensure navigation updates session state
+    if st.button(f"View {event_data.get('event_name')}", key=f"btn_{event_id}"):
+        st.session_state["selected_event"] = event_id
+        st.session_state["page"] = page_destination
+        st.rerun()  # Forces navigation to update
+
 
 def event_cards_grid(events_df, key_prefix=""):
     """

@@ -5,6 +5,7 @@ from typing import List, Optional
 import uvicorn
 import os
 import logging
+import requests
 
 from backend.data_service import F1DataService
 from backend.session_id_fix import patch_data_service
@@ -185,6 +186,23 @@ async def get_event(year: int, round_number: int, data_service: F1DataService = 
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
+
+@app.get("/api/event_schedule/{event_id}")
+def get_event_schedule(event_id: int):
+    event = fastf1.get_event(2025, event_id)
+    schedule = [
+        {"id": i+1, "name": event[f"Session{i+1}"], "start_time": event[f"Session{i+1}DateUtc"], "type": event[f"Session{i+1}"]}
+        for i in range(5) if event[f"Session{i+1}"]
+    ]
+    return {"sessions": schedule}
+
+@app.get("/api/weather/{event_id}")
+def get_weather(event_id: int):
+    event = fastf1.get_event(2025, event_id)
+    location = event["Location"]
+    
+    response = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={location}&appid={OPENWEATHER_API_KEY}&units=metric")
+    return response.json()
 
 @app.get("/sessions/{event_id}", response_model=List[SessionModel])
 async def get_sessions(event_id: int, data_service: F1DataService = Depends(get_data_service)):

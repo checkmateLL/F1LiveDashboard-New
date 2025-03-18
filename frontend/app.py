@@ -15,6 +15,7 @@ from frontend.pages.standings import standings
 from frontend.pages.performance import performance
 from frontend.pages.analytics import analytics  # Renamed from 'live'
 from frontend.pages.race_replay import race_replay  # New page
+from frontend.pages.event_schedule import event_schedule
 
 # Set Page Configuration
 st.set_page_config(
@@ -127,6 +128,8 @@ page = create_navbar()
 # Load the selected page
 if page == "Home":
     home()
+elif page == "Event Schedule":
+    event_schedule()   
 elif page == "Analytics":
     analytics()
 elif page == "Race Replay":

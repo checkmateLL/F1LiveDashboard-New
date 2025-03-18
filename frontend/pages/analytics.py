@@ -1,136 +1,119 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 import pandas as pd
-from datetime import datetime
-import sqlite3
-
-from frontend.components.countdown import get_next_event, display_countdown
 from backend.db_connection import get_db_handler
 
+def fetch_sessions(db):
+    """Fetch all available sessions grouped by event name."""
+    query = """
+    SELECT s.id AS session_id, e.event_name, s.name AS session_name, s.date
+    FROM sessions s
+    JOIN events e ON s.event_id = e.id
+    ORDER BY s.date DESC;
+    """
+    return db.execute_query(query)
+
+def fetch_lap_times(db, session_id):
+    """Retrieve lap times from the database for the selected session."""
+    query = """
+    SELECT d.full_name, l.lap_number, l.lap_time, l.speed_fl, l.compound
+    FROM laps l
+    JOIN drivers d ON l.driver_id = d.id
+    WHERE l.session_id = ?
+    ORDER BY l.lap_number
+    """
+    return db.execute_query(query, params=(session_id,))
+
+def fetch_telemetry(db, session_id, driver_name):
+    """Retrieve telemetry data for a specific driver."""
+    query = """
+    SELECT t.time, t.speed, t.x, t.y
+    FROM telemetry t
+    JOIN drivers d ON t.driver_id = d.id
+    WHERE t.session_id = ? AND d.full_name = ?
+    ORDER BY t.time;
+    """
+    return db.execute_query(query, params=(session_id, driver_name))
+
+def plot_time_vs_speed(telemetry_data, driver_name):
+    """Plot Time vs Speed Graph."""
+    plt.figure(figsize=(10, 5))
+    plt.plot(telemetry_data['time'], telemetry_data['speed'], label=driver_name, linewidth=2)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Speed (km/h)")
+    plt.title("Lap Time Comparison (Time vs Speed)")
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
+def plot_speed_vs_distance(telemetry_data, driver_name):
+    """Plot Speed vs Distance Graph."""
+    plt.figure(figsize=(10, 5))
+    plt.plot(telemetry_data['x'], telemetry_data['speed'], label=driver_name, linewidth=2)
+    plt.xlabel("Distance (track position)")
+    plt.ylabel("Speed (km/h)")
+    plt.title("Speed vs Distance")
+    plt.legend()
+    plt.grid(True)
+    st.pyplot(plt)
+
 def analytics():
-    st.title("📊 F1 Data Analytics")    
-    
+    st.title("📊 F1 Data Analytics")
+
     try:
         with get_db_handler() as db:
+            st.subheader("Select Event & Session")
 
-            # Get current year
-            current_year = datetime.now().year
+            # Fetch available sessions
+            session_options = fetch_sessions(db)
+
+            if session_options.empty:
+                st.error("No sessions available.")
+                return
             
-            # Get events for the current year
-            events_df = db.execute_query(
-                "SELECT id, round_number, country, location, official_event_name, event_name, event_date, event_format "
-                "FROM events WHERE year = ? ORDER BY event_date",
-                params=(current_year,)
-            )
-            
-            # Create layout with two columns
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                st.subheader("Historical Race Analysis")
-                
-                # Year selection
-                years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
-                years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-                selected_year = st.selectbox("Select Season", years)
-                
-                # Event selection
-                year_events = db.execute_query(
-                    "SELECT id, round_number, event_name FROM events WHERE year = ? ORDER BY round_number",
-                    
-                    params=(selected_year,)
-                )
-                
-                if not year_events.empty:
-                    event_options = [(row['id'], f"Round {row['round_number']} - {row['event_name']}") 
-                                    for _, row in year_events.iterrows()]
-                    
-                    # Use index and label for better display
-                    event_labels = [label for _, label in event_options]
-                    event_indices = [idx for idx, _ in enumerate(event_options)]
-                    
-                    selected_event_idx = st.selectbox("Select Event", event_indices, format_func=lambda x: event_labels[x])
-                    selected_event_id = event_options[selected_event_idx][0]
-                    
-                    # Session selection
-                    sessions = db.execute_query(
-                        "SELECT id, name, session_type FROM sessions WHERE event_id = ? ORDER BY date",
-                        
-                        params=(selected_event_id,)
-                    )
-                    
-                    if not sessions.empty:
-                        session_options = [(int(row['id']), f"{row['name']} ({row['session_type'].capitalize()})") 
-                                        for _, row in sessions.iterrows()]
-                        
-                        # Use index and label for better display
-                        session_labels = [label for _, label in session_options]
-                        session_indices = [idx for idx, _ in enumerate(session_options)]
-                        
-                        selected_session_idx = st.selectbox("Select Session", session_indices, format_func=lambda x: session_labels[x])
-                        selected_session_id = int(session_options[selected_session_idx][0])  # Ensure int conversion
-                        
-                        # Display analysis options
-                        analysis_type = st.radio(
-                            "Select Analysis Type",
-                            ["Lap Time Comparison", "Tyre Strategy", "Driver Performance", "Race Pace"]
-                        )
-                        
-                        if st.button("Generate Analysis"):
-                            st.info(f"Analysis for {session_labels[selected_session_idx]} will be displayed here.")
-                            st.session_state['selected_session'] = selected_session_id
-                            
-                            # Redirect to appropriate analysis page
-                            if analysis_type == "Lap Time Comparison":
-                                st.session_state['page'] = 'Lap Times'
-                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
-                            elif analysis_type == "Driver Performance":
-                                st.session_state['page'] = 'Performance Analysis'
-                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
-                            elif analysis_type == "Tyre Strategy":
-                                st.session_state['page'] = 'Performance Analysis'
-                                st.rerun()  # Use st.rerun() instead of experimental_rerun()
-                            else:
-                                # Show placeholder for now
-                                st.write("This analysis type is under development.")
+            # Properly display event + session + date
+            event_selection = [
+                f"{row['event_name']} - {row['session_name']} ({row['date']})"
+                for _, row in session_options.iterrows()
+            ]
+            selected_idx = st.selectbox("Select Event & Session", range(len(event_selection)), format_func=lambda x: event_selection[x])
+            selected_session_id = session_options.iloc[selected_idx]["session_id"]
+
+            # Select Analysis Type
+            analysis_type = st.radio("Select Analysis Type", ["Lap Time Comparison", "Tyre Strategy", "Driver Performance"])
+
+            if st.button("Generate Analysis"):
+                if analysis_type == "Lap Time Comparison":
+                    lap_times = fetch_lap_times(db, selected_session_id)
+                    if lap_times.empty:
+                        st.error("No lap data available.")
                     else:
-                        st.warning("No session data found for the selected event.")
-                else:
-                    st.warning("No events found for the selected year.")
-            
-            with col2:
-                # Next event countdown
-                next_event = get_next_event(events_df)
-                if next_event:
-                    st.subheader("Next Race Event")
-                    display_countdown(next_event)
-                
-                # Quick stats
-                st.subheader("Season Stats")
-                
-                try:
-                    # Get championship leader
-                    driver_standings = db.execute_query("""
-                        SELECT d.full_name, t.name as team_name, SUM(r.points) as total_points
-                        FROM results r
-                        JOIN drivers d ON r.driver_id = d.id
-                        JOIN teams t ON d.team_id = t.id
-                        JOIN sessions s ON r.session_id = s.id
-                        JOIN events e ON s.event_id = e.id
-                        WHERE e.year = ? AND s.session_type = 'race'
-                        GROUP BY d.id
-                        ORDER BY total_points DESC
-                        LIMIT 1
-                    """, params=(current_year,))
-                    
-                    if not driver_standings.empty:
-                        st.metric("Championship Leader", 
-                                driver_standings['full_name'].iloc[0])
-                        st.metric("Leader's Team", 
-                                driver_standings['team_name'].iloc[0])
-                        st.metric("Leader's Points", 
-                                driver_standings['total_points'].iloc[0])
-                except Exception as e:
-                    st.error(f"Error loading stats: {e}")
-    
+                        st.subheader("Lap Time Comparison")
+                        st.dataframe(lap_times)
+
+                        # Allow user to pick two drivers for visualization
+                        driver_options = lap_times["full_name"].unique()
+                        driver1 = st.selectbox("Select Driver 1", driver_options)
+                        driver2 = st.selectbox("Select Driver 2", driver_options)
+
+                        if driver1 and driver2:
+                            telemetry1 = fetch_telemetry(db, selected_session_id, driver1)
+                            telemetry2 = fetch_telemetry(db, selected_session_id, driver2)
+
+                            if not telemetry1.empty and not telemetry2.empty:
+                                st.subheader(f"Time vs Speed: {driver1} vs {driver2}")
+                                plot_time_vs_speed(telemetry1, driver1)
+                                plot_time_vs_speed(telemetry2, driver2)
+
+                                st.subheader(f"Speed vs Distance: {driver1} vs {driver2}")
+                                plot_speed_vs_distance(telemetry1, driver1)
+                                plot_speed_vs_distance(telemetry2, driver2)
+
+                elif analysis_type == "Tyre Strategy":
+                    st.subheader("Tyre Strategy Analysis - Coming Soon")
+
+                elif analysis_type == "Driver Performance":
+                    st.subheader("Driver Performance Insights - Coming Soon")
+
     except Exception as e:
         st.error(f"Error loading analytics data: {e}")
