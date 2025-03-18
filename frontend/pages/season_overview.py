@@ -12,9 +12,7 @@ def season_overview():
     st.title("📅 F1 Season Overview")    
     
     try:
-
         with get_db_handler() as db:
-
             # Get available years from the database
             years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
             years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
@@ -48,7 +46,7 @@ def season_overview():
             # If an event is selected, show detailed information
             if selected_event or ('selected_event' in st.session_state and st.session_state['selected_event']):
                 event_id = selected_event if selected_event else st.session_state['selected_event']
-                display_event_details(event_id)
+                display_event_details(event_id, db)  # Pass db as the second parameter
     
     except Exception as e:
         st.error(f"Error loading season overview: {e}")

@@ -1,4 +1,5 @@
 import sqlite3
+import pandas as pd
 
 class DatabaseConnectionHandler:
     """
@@ -102,42 +103,40 @@ class DatabaseConnectionHandler:
             
             query += " ORDER BY l.lap_number, l.position"
             
-            # Execute the query
-            cursor = self.conn.cursor()
-            cursor.execute(query, params)
-            return [dict(row) for row in cursor.fetchall()]
+            # Return as DataFrame for easier manipulation
+            df = pd.read_sql_query(query, self.conn, params=params)
+            return df
         
         except (ValueError, TypeError) as e:
             print(f"Error converting IDs: {e}")
-            return []
+            return pd.DataFrame()
         except Exception as e:
             print(f"Database error: {e}")
-            return []
+            return pd.DataFrame()
     
     def execute_query(self, query, params=None):
         """
         Execute a custom SQL query with automatic ID conversion.
-        For complex queries or queries that aren't covered by specialized methods.
+        Returns a pandas DataFrame for consistency and easier manipulation.
         """
         try:
-            cursor = self.conn.cursor()
-            
             # Convert any ID parameters to integers
-            if params:
+            if params and isinstance(params, tuple):
                 processed_params = []
                 for param in params:
                     if isinstance(param, str) and param.isdigit():
                         processed_params.append(int(param))
                     else:
                         processed_params.append(param)
-                cursor.execute(query, processed_params)
-            else:
-                cursor.execute(query)
+                params = tuple(processed_params)
+            
+            # Execute query and return as DataFrame
+            df = pd.read_sql_query(query, self.conn, params=params)
+            return df
                 
-            return [dict(row) for row in cursor.fetchall()]
         except Exception as e:
             print(f"Query execution error: {e}")
-            return []
+            return pd.DataFrame()  # Return empty DataFrame instead of empty list
 
 # Helper function to initialize the database handler
 def get_db_handler():
