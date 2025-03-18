@@ -10,11 +10,10 @@ from frontend.pages.home import home
 from frontend.pages.season_overview import season_overview
 from frontend.pages.race_results import race_results
 from frontend.pages.lap_times import lap_times
-from frontend.pages.telemetry import telemetry
 from frontend.pages.standings import standings
 from frontend.pages.performance import performance
-from frontend.pages.analytics import analytics  # Renamed from 'live'
-from frontend.pages.race_replay import race_replay  # New page
+from frontend.pages.race_analysis import race_analysis
+from frontend.pages.race_replay import race_replay
 from frontend.pages.event_schedule import event_schedule
 
 # Set Page Configuration
@@ -130,8 +129,8 @@ if page == "Home":
     home()
 elif page == "Event Schedule":
     event_schedule()   
-elif page == "Analytics":
-    analytics()
+elif page == "Race Analysis":
+    race_analysis()
 elif page == "Race Replay":
     race_replay()
 elif page == "Season Overview":
@@ -140,8 +139,6 @@ elif page == "Race Results":
     race_results()
 elif page == "Lap Times":
     lap_times()
-elif page == "Telemetry Analysis":
-    telemetry()
 elif page == "Standings":
     standings()
 elif page == "Performance Analysis":
