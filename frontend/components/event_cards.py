@@ -24,27 +24,36 @@ def event_card(event_data, is_past=False):
     # Determine card style based on past/future
     card_style = "past-event" if is_past else "future-event"
     
-    # Create the card
-    with st.container():
-        st.markdown(f"""
-        <div class="event-card {card_style}">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3>{event_data.get('event_name', 'Unknown Event')}</h3>
-                    <p>{event_data.get('country', '')} | Round {event_data.get('round_number', '?')}</p>
-                    <p>{formatted_date}</p>
-                </div>
-                <div>
-                    <img src="https://flagcdn.com/32x24/{get_country_code(event_data.get('country', ''))}.png" 
-                         alt="{event_data.get('country', '')}" 
-                         style="border-radius: 5px;">
-                </div>
+    # Create the card - made clickable by wrapping in a div with onClick
+    event_id = event_data.get('id', 'unknown')
+    card_key = f"card_{event_id}"
+    
+    # Create the card content
+    st.markdown(f"""
+    <div class="event-card {card_style}" id="{card_key}" 
+         onclick="window.location.href='#{event_id}'; 
+                  document.dispatchEvent(new CustomEvent('streamlit:viewEvent', 
+                  {{detail: {{eventId: {event_id}}}}}))"
+         data-event-id="{event_id}">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3>{event_data.get('event_name', 'Unknown Event')}</h3>
+                <p>{event_data.get('country', '')} | Round {event_data.get('round_number', '?')}</p>
+                <p>{formatted_date}</p>
+            </div>
+            <div>
+                <img src="https://flagcdn.com/32x24/{get_country_code(event_data.get('country', ''))}.png" 
+                     alt="{event_data.get('country', '')}" 
+                     style="border-radius: 5px;">
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Return True if clicked, False otherwise
-    return st.button(f"View {event_data.get('event_name', 'event')}", key=f"btn_{event_data.get('id', 'unknown')}")
+    # Use a hidden button to capture clicks and store in session state
+    clicked = st.button(f"Select {event_data.get('event_name', 'event')}", key=f"btn_{event_id}", help="View event details")
+    
+    return clicked
 
 def event_cards_grid(events_df, key_prefix=""):
     """
@@ -62,15 +71,37 @@ def event_cards_grid(events_df, key_prefix=""):
     cols = st.columns(3)
     selected_event = None
     
+    # Convert event_date to datetime if it's a string
+    if isinstance(events_df, pd.DataFrame) and 'event_date' in events_df.columns:
+        events_df['event_date_dt'] = pd.to_datetime(events_df['event_date'], errors='coerce')
+    
     # Populate grid with event cards
     for idx, event in events_df.iterrows():
-        event_date = pd.to_datetime(event["event_date"]).date() if pd.notna(event["event_date"]) else None
+        # Convert to dictionary for consistent handling
+        if isinstance(event, pd.Series):
+            event_dict = event.to_dict()
+        else:
+            event_dict = event
+            
+        # Check if it's a past event
+        event_date = event_dict.get('event_date_dt', None)
+        if event_date is None and 'event_date' in event_dict:
+            try:
+                event_date = pd.to_datetime(event_dict['event_date']).date()
+            except:
+                event_date = None
+                
         is_past = (event_date is not None and event_date < current_date)
         
+        # Place in appropriate column
         with cols[idx % 3]:
-            event_dict = event.to_dict()
-            if event_cards_grid(event_dict, is_past):
+            # Create card and check if clicked
+            card_clicked = event_card(event_dict, is_past)
+            if card_clicked:
                 selected_event = event_dict.get("id")
+                # Store in session state for other components to use
+                st.session_state['selected_event'] = selected_event
+                st.session_state['selected_year'] = event_dict.get("year", datetime.now().year)
     
     return selected_event
 

@@ -4,56 +4,55 @@ import sqlite3
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
+
 from frontend.components.event_cards import event_cards_grid
+from backend.db_connection import get_db_handler
 
 def season_overview():
-    st.title("📅 F1 Season Overview")
-    
-    # Connect to the database
-    conn = sqlite3.connect("f1_data_full_2025.db")
+    st.title("📅 F1 Season Overview")    
     
     try:
-        # Get available years from the database
-        years_df = pd.read_sql_query("SELECT DISTINCT year FROM events ORDER BY year DESC", conn)
-        years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-        
-        # Allow user to select a season
-        year = st.selectbox("Select Season", years, index=0)
-        
-        # Get all events for the selected season
-        events_df = pd.read_sql_query(
-            """
-            SELECT id, round_number, country, location, official_event_name, 
-                   event_name, event_date, event_format
-            FROM events
-            WHERE year = ?
-            ORDER BY round_number
-            """,
-            conn,
-            params=(year,)
-        )
-        
-        # Display a season map visualization
-        if not events_df.empty:
-            display_season_map(events_df)
-        
-        # Season format overview
-        display_season_format(events_df, year)
-        
-        # Display events in a grid
-        st.subheader("Season Calendar")
-        selected_event = event_cards_grid(events_df)
-        
-        # If an event is selected, show detailed information
-        if selected_event or ('selected_event' in st.session_state and st.session_state['selected_event']):
-            event_id = selected_event if selected_event else st.session_state['selected_event']
-            display_event_details(event_id, conn)
+
+        with get_db_handler() as db:
+
+            # Get available years from the database
+            years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
+            years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
+            
+            # Allow user to select a season
+            year = st.selectbox("Select Season", years, index=0)
+            
+            # Get all events for the selected season
+            events_df = db.execute_query(
+                """
+                SELECT id, round_number, country, location, official_event_name, 
+                    event_name, event_date, event_format
+                FROM events
+                WHERE year = ?
+                ORDER BY round_number
+                """,                
+                params=(year,)
+            )
+            
+            # Display a season map visualization
+            if not events_df.empty:
+                display_season_map(events_df)
+            
+            # Season format overview
+            display_season_format(events_df, year)
+            
+            # Display events in a grid
+            st.subheader("Season Calendar")
+            selected_event = event_cards_grid(events_df)
+            
+            # If an event is selected, show detailed information
+            if selected_event or ('selected_event' in st.session_state and st.session_state['selected_event']):
+                event_id = selected_event if selected_event else st.session_state['selected_event']
+                display_event_details(event_id)
     
     except Exception as e:
         st.error(f"Error loading season overview: {e}")
-    
-    finally:
-        conn.close()
+
 
 def display_season_map(events_df):
     """Display a world map with all race locations."""
@@ -189,17 +188,16 @@ def display_season_format(events_df, year):
     else:
         st.info("Event format information not available.")
 
-def display_event_details(event_id, conn):
+def display_event_details(event_id, db):
     """Display detailed information about a specific event."""
     # Get event details
-    event_df = pd.read_sql_query(
+    event_df = db.execute_query(
         """
         SELECT id, year, round_number, country, location, official_event_name, 
                event_name, event_date, event_format
         FROM events
         WHERE id = ?
-        """,
-        conn,
+        """,        
         params=(event_id,)
     )
     
@@ -210,14 +208,13 @@ def display_event_details(event_id, conn):
     event = event_df.iloc[0]
     
     # Get sessions for this event
-    sessions_df = pd.read_sql_query(
+    sessions_df = db.execute_query(
         """
         SELECT id, name, date, session_type, total_laps
         FROM sessions
         WHERE event_id = ?
         ORDER BY date
-        """,
-        conn,
+        """,        
         params=(event_id,)
     )
     

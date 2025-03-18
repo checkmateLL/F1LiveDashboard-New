@@ -7,6 +7,7 @@ import os
 import logging
 
 from backend.data_service import F1DataService
+from backend.session_id_fix import patch_data_service
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -25,11 +26,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Startup: create a global data service instance and start live polling.
+# Add at startup
 @app.on_event("startup")
 async def startup_event():
     app.state.data_service = F1DataService()
     app.state.data_service.start_live_polling()
+    patch_data_service()  # Apply the session ID patch
     logger.info("Startup: Data service initialized and live polling started.")
 
 # Shutdown: cleanly close connections.
@@ -162,44 +164,6 @@ async def get_telemetry(
     if df.empty:
         return []
     return df.to_dict(orient="records")
-
-# Live data endpoints
-@app.get("/live/session", response_model=Optional[LiveSessionModel])
-async def get_live_session(data_service: F1DataService = Depends(get_data_service)):
-    return data_service.get_current_session()
-
-@app.get("/live/timing", response_model=List[LiveTimingEntryModel])
-async def get_live_timing(data_service: F1DataService = Depends(get_data_service)):
-    if data_service.redis_service:
-        return data_service.redis_service.get_live_timing()
-    return []
-
-@app.get("/live/weather", response_model=Optional[WeatherModel])
-async def get_live_weather(data_service: F1DataService = Depends(get_data_service)):
-    if data_service.redis_service:
-        return data_service.redis_service.get_live_weather()
-    return None
-
-@app.get("/live/track-status", response_model=Optional[TrackStatusModel])
-async def get_track_status(data_service: F1DataService = Depends(get_data_service)):
-    if data_service.redis_service:
-        return data_service.redis_service.get_track_status()
-    return None
-
-@app.get("/live/events", response_model=List[RaceEventModel])
-async def get_race_events(
-    limit: int = Query(10, ge=1, le=50),
-    data_service: F1DataService = Depends(get_data_service)
-):
-    if data_service.redis_service:
-        return data_service.redis_service.get_race_events(limit)
-    return []
-
-@app.get("/live/tires")
-async def get_tire_data(data_service: F1DataService = Depends(get_data_service)):
-    if data_service.redis_service:
-        return data_service.redis_service.get_live_tires()
-    return {}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))

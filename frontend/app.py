@@ -13,11 +13,12 @@ from frontend.pages.lap_times import lap_times
 from frontend.pages.telemetry import telemetry
 from frontend.pages.standings import standings
 from frontend.pages.performance import performance
-from frontend.pages.live import live
+from frontend.pages.analytics import analytics  # Renamed from 'live'
+from frontend.pages.race_replay import race_replay  # New page
 
 # Set Page Configuration
 st.set_page_config(
-    page_title="F1 Live Dashboard",
+    page_title="F1 Dashboard",
     page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -62,6 +63,7 @@ st.markdown("""
         margin-bottom: 15px;
         background-color: #1e1e1e;
         transition: transform 0.3s;
+        cursor: pointer;
     }
     
     .event-card:hover {
@@ -82,6 +84,36 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #b80500;
     }
+    
+    /* Countdown styling */
+    .countdown-container {
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        margin: 20px 0;
+    }
+    .countdown-box {
+        background-color: #e10600;
+        color: white;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 0 10px;
+        min-width: 80px;
+    }
+    .countdown-value {
+        font-size: 32px;
+        font-weight: bold;
+    }
+    .countdown-label {
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .countdown-event {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -95,8 +127,10 @@ page = create_navbar()
 # Load the selected page
 if page == "Home":
     home()
-elif page == "Live":
-    live()
+elif page == "Analytics":
+    analytics()
+elif page == "Race Replay":
+    race_replay()
 elif page == "Season Overview":
     season_overview()
 elif page == "Race Results":
@@ -112,5 +146,5 @@ elif page == "Performance Analysis":
 
 # Footer
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🏎️ F1 Live Dashboard")
+st.sidebar.markdown("### 🏎️ F1 Dashboard")
 st.sidebar.markdown("© 2025 CheckmateLL")

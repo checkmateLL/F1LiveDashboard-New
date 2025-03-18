@@ -53,41 +53,7 @@ def display_countdown(event):
     minutes = (time_left.seconds // 60) % 60
     seconds = time_left.seconds % 60
     
-    # Create a nice-looking countdown display
-    st.markdown("""
-    <style>
-    .countdown-container {
-        display: flex;
-        justify-content: center;
-        text-align: center;
-        margin: 20px 0;
-    }
-    .countdown-box {
-        background-color: #e10600;
-        color: white;
-        border-radius: 5px;
-        padding: 15px;
-        margin: 0 10px;
-        min-width: 80px;
-    }
-    .countdown-value {
-        font-size: 32px;
-        font-weight: bold;
-    }
-    .countdown-label {
-        font-size: 14px;
-        margin-top: 5px;
-    }
-    .countdown-event {
-        text-align: center;
-        font-size: 24px;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
-    # Event name and date
+    # Create a nice-looking countdown display with improved styling
     st.markdown(f"""
     <div class="countdown-event">
         {event.get('event_name', 'Next Event')} - {event.get('country', '')}
@@ -95,10 +61,6 @@ def display_countdown(event):
     <div style="text-align: center; margin-bottom: 20px;">
         {event_time.strftime('%d %b %Y, %H:%M')}
     </div>
-    """, unsafe_allow_html=True)
-    
-    # Countdown boxes
-    st.markdown(f"""
     <div class="countdown-container">
         <div class="countdown-box">
             <div class="countdown-value">{days}</div>

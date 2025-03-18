@@ -6,52 +6,52 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
+from backend.db_connection import get_db_handler
+
 def standings():
-    st.title("🏆 Championship Standings")
-    
-    # Connect to the database
-    conn = sqlite3.connect("f1_data_full_2025.db")
+    st.title("🏆 Championship Standings")    
     
     try:
-        # Get available years from the database
-        years_df = pd.read_sql_query("SELECT DISTINCT year FROM events ORDER BY year DESC", conn)
-        years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-        
-        # Allow user to select a season
-        if 'selected_year' in st.session_state:
-            default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
-        else:
-            default_year_index = 0
+
+        with get_db_handler() as db:
+             
+            # Get available years from the database
+            years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
+            years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
             
-        year = st.selectbox("Select Season", years, index=default_year_index)
-        
-        # Update session state
-        st.session_state['selected_year'] = year
-        
-        # Create tabs for driver and constructor standings
-        tab1, tab2, tab3 = st.tabs(["Driver Standings", "Constructor Standings", "Season Progress"])
-        
-        with tab1:
-            show_driver_standings(conn, year)
-        
-        with tab2:
-            show_constructor_standings(conn, year)
-        
-        with tab3:
-            show_season_progress(conn, year)
+            # Allow user to select a season
+            if 'selected_year' in st.session_state:
+                default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
+            else:
+                default_year_index = 0
+                
+            year = st.selectbox("Select Season", years, index=default_year_index)
+            
+            # Update session state
+            st.session_state['selected_year'] = year
+            
+            # Create tabs for driver and constructor standings
+            tab1, tab2, tab3 = st.tabs(["Driver Standings", "Constructor Standings", "Season Progress"])
+            
+            with tab1:
+                show_driver_standings(year)
+            
+            with tab2:
+                show_constructor_standings(year)
+            
+            with tab3:
+                show_season_progress(year)
     
     except Exception as e:
         st.error(f"Error loading standings: {e}")
-    
-    finally:
-        conn.close()
 
-def show_driver_standings(conn, year):
+
+def show_driver_standings(db, year):
     """Display the driver championship standings."""
     st.subheader(f"{year} Drivers' Championship")
     
     # Get driver standings for the selected year
-    driver_standings = pd.read_sql_query(
+    driver_standings = db.execute_query(
         """
         SELECT d.id, d.full_name as driver_name, d.abbreviation, d.driver_number,
                t.name as team_name, t.team_color,
@@ -64,8 +64,7 @@ def show_driver_standings(conn, year):
         WHERE e.year = ? AND (s.session_type = 'race' OR s.session_type = 'sprint')
         GROUP BY d.id
         ORDER BY total_points DESC
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -118,12 +117,12 @@ def show_driver_standings(conn, year):
     else:
         st.info("No driver standings data available for this season.")
 
-def show_constructor_standings(conn, year):
+def show_constructor_standings(db, year):
     """Display the constructor championship standings."""
     st.subheader(f"{year} Constructors' Championship")
     
     # Get constructor standings for the selected year
-    constructor_standings = pd.read_sql_query(
+    constructor_standings = db.execute_query(
         """
         SELECT t.id, t.name as team_name, t.team_color,
                SUM(r.points) as total_points
@@ -135,8 +134,7 @@ def show_constructor_standings(conn, year):
         WHERE e.year = ? AND (s.session_type = 'race' OR s.session_type = 'sprint')
         GROUP BY t.id
         ORDER BY total_points DESC
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -184,7 +182,7 @@ def show_constructor_standings(conn, year):
             leader_gap = leader['total_points'] - second['total_points']
             
             # Get drivers for the leading team
-            leading_team_drivers = pd.read_sql_query(
+            leading_team_drivers = db.execute_query(
                 """
                 SELECT d.full_name, SUM(r.points) as driver_points
                 FROM results r
@@ -195,8 +193,7 @@ def show_constructor_standings(conn, year):
                 WHERE e.year = ? AND t.id = ? AND (s.session_type = 'race' OR s.session_type = 'sprint')
                 GROUP BY d.id
                 ORDER BY driver_points DESC
-                """,
-                conn,
+                """,                
                 params=(year, leader['id'])
             )
             
@@ -232,20 +229,19 @@ def show_constructor_standings(conn, year):
     else:
         st.info("No constructor standings data available for this season.")
 
-def show_season_progress(conn, year):
+def show_season_progress(db, year):
     """Display how the championships have evolved throughout the season."""
     st.subheader(f"{year} Championship Progress")
     
     # Get all races in the season
-    races = pd.read_sql_query(
+    races = db.execute_query(
         """
         SELECT e.id, e.round_number, e.event_name, s.id as session_id
         FROM events e
         JOIN sessions s ON e.id = s.event_id
         WHERE e.year = ? AND s.session_type = 'race'
         ORDER BY e.round_number
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -258,7 +254,7 @@ def show_season_progress(conn, year):
     team_progress = []
     
     # Get top 5 drivers and teams for the legend
-    top_drivers = pd.read_sql_query(
+    top_drivers = db.execute_query(
         """
         SELECT d.id, d.full_name as driver_name, t.team_color,
                SUM(r.points) as total_points
@@ -271,12 +267,11 @@ def show_season_progress(conn, year):
         GROUP BY d.id
         ORDER BY total_points DESC
         LIMIT 5
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
-    top_teams = pd.read_sql_query(
+    top_teams = db.execute_query(
         """
         SELECT t.id, t.name as team_name, t.team_color,
                SUM(r.points) as total_points
@@ -289,8 +284,7 @@ def show_season_progress(conn, year):
         GROUP BY t.id
         ORDER BY total_points DESC
         LIMIT 5
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -315,9 +309,8 @@ def show_season_progress(conn, year):
             ORDER BY cumulative_points DESC
         """
         
-        driver_standings = pd.read_sql_query(
-            driver_standings_query,
-            conn,
+        driver_standings = db.execute_query(
+            driver_standings_query,            
             params=session_ids
         )
         
@@ -333,9 +326,8 @@ def show_season_progress(conn, year):
             ORDER BY cumulative_points DESC
         """
         
-        team_standings = pd.read_sql_query(
-            team_standings_query,
-            conn,
+        team_standings = db.execute_query(
+            team_standings_query,            
             params=session_ids
         )
         

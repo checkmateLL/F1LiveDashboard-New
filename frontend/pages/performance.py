@@ -6,60 +6,59 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
+from backend.db_connection import get_db_handler
+
 def performance():
     st.title("📊 Performance Analysis")
     
-    # Connect to the database
-    conn = sqlite3.connect("f1_data_full_2025.db")
-    
     try:
-        # Get available years from the database
-        years_df = pd.read_sql_query("SELECT DISTINCT year FROM events ORDER BY year DESC", conn)
-        years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-        
-        # Allow user to select a season
-        if 'selected_year' in st.session_state:
-            default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
-        else:
-            default_year_index = 0
+        with get_db_handler() as db:
+
+            # Get available years from the database
+            years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
+            years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
             
-        year = st.selectbox("Select Season", years, index=default_year_index)
-        
-        # Update session state
-        st.session_state['selected_year'] = year
-        
-        # Create tabs for different performance analyses
-        tab1, tab2, tab3, tab4 = st.tabs([
-            "Driver Performance", 
-            "Team Performance", 
-            "Tire Strategy", 
-            "Pit Stop Analysis"
-        ])
-        
-        with tab1:
-            show_driver_performance(conn, year)
-        
-        with tab2:
-            show_team_performance(conn, year)
-        
-        with tab3:
-            show_tire_strategy(conn, year)
-        
-        with tab4:
-            show_pit_stop_analysis(conn, year)
+            # Allow user to select a season
+            if 'selected_year' in st.session_state:
+                default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
+            else:
+                default_year_index = 0
+                
+            year = st.selectbox("Select Season", years, index=default_year_index)
+            
+            # Update session state
+            st.session_state['selected_year'] = year
+            
+            # Create tabs for different performance analyses
+            tab1, tab2, tab3, tab4 = st.tabs([
+                "Driver Performance", 
+                "Team Performance", 
+                "Tire Strategy", 
+                "Pit Stop Analysis"
+            ])
+            
+            with tab1:
+                show_driver_performance(year)
+            
+            with tab2:
+                show_team_performance(year)
+            
+            with tab3:
+                show_tire_strategy(year)
+            
+            with tab4:
+                show_pit_stop_analysis(year)
     
     except Exception as e:
-        st.error(f"Error loading performance analysis: {e}")
-    
-    finally:
-        conn.close()
+        st.error(f"Error loading performance analysis: {e}") 
+   
 
-def show_driver_performance(conn, year):
+def show_driver_performance(db, year):
     """Analyze and visualize driver performance metrics."""
     st.subheader("Driver Performance Analysis")
     
     # Get all drivers for the selected year
-    drivers_df = pd.read_sql_query(
+    drivers_df = db.execute_query(
         """
         SELECT DISTINCT d.id, d.full_name as driver_name, d.abbreviation,
                t.name as team_name, t.team_color
@@ -67,9 +66,8 @@ def show_driver_performance(conn, year):
         JOIN teams t ON d.team_id = t.id
         WHERE d.year = ?
         ORDER BY t.name, d.full_name
-        """,
-        conn,
-        params=(year,)
+        """,        
+        (year,)
     )
     
     if drivers_df.empty:
@@ -95,7 +93,7 @@ def show_driver_performance(conn, year):
     
     for _, driver in selected_drivers_df.iterrows():
         # Get qualifying performance
-        quali_data = pd.read_sql_query(
+        quali_data = db.execute_query(
             """
             SELECT AVG(r.position) as avg_quali_position,
                    MIN(r.position) as best_quali_position,
@@ -105,13 +103,12 @@ def show_driver_performance(conn, year):
             JOIN events e ON s.event_id = e.id
             WHERE r.driver_id = ? AND e.year = ? AND 
                   (s.session_type = 'qualifying' OR s.session_type = 'sprint_qualifying' OR s.session_type = 'sprint_shootout')
-            """,
-            conn,
+            """,            
             params=(driver['id'], year)
         )
         
         # Get race performance
-        race_data = pd.read_sql_query(
+        race_data = db.execute_query(
             """
             SELECT AVG(r.position) as avg_race_position,
                    MIN(r.position) as best_race_position,
@@ -123,13 +120,12 @@ def show_driver_performance(conn, year):
             JOIN events e ON s.event_id = e.id
             WHERE r.driver_id = ? AND e.year = ? AND 
                   (s.session_type = 'race' OR s.session_type = 'sprint')
-            """,
-            conn,
+            """,            
             params=(driver['id'], year)
         )
         
         # Get fastest laps
-        fastest_laps = pd.read_sql_query(
+        fastest_laps = db.execute_query(
             """
             SELECT COUNT(*) as fastest_lap_count
             FROM (
@@ -142,8 +138,7 @@ def show_driver_performance(conn, year):
             ) fastest
             JOIN laps l ON l.session_id = fastest.session_id AND l.lap_time = fastest.fastest_lap_time
             WHERE l.driver_id = ?
-            """,
-            conn,
+            """,            
             params=(year, driver['id'])
         )
         
@@ -218,7 +213,7 @@ def show_driver_performance(conn, year):
                 driver_color = drivers_df[drivers_df['driver_name'] == driver_name]['team_color'].iloc[0]
                 
                 # Get race results over the season
-                race_results = pd.read_sql_query(
+                race_results = db.execute_query(
                     """
                     SELECT r.position, e.round_number, e.event_name
                     FROM results r
@@ -226,8 +221,7 @@ def show_driver_performance(conn, year):
                     JOIN events e ON s.event_id = e.id
                     WHERE r.driver_id = ? AND e.year = ? AND s.session_type = 'race'
                     ORDER BY e.round_number
-                    """,
-                    conn,
+                    """,                    
                     params=(driver_id, year)
                 )
                 
@@ -268,19 +262,18 @@ def show_driver_performance(conn, year):
     else:
         st.info("No performance data available for the selected drivers.")
 
-def show_team_performance(conn, year):
+def show_team_performance(db, year):
     """Analyze and visualize team performance metrics."""
     st.subheader("Team Performance Analysis")
     
     # Get all teams for the selected year
-    teams_df = pd.read_sql_query(
+    teams_df = db.execute_query(
         """
         SELECT DISTINCT id, name as team_name, team_color
         FROM teams
         WHERE year = ?
         ORDER BY name
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -307,7 +300,7 @@ def show_team_performance(conn, year):
     
     for _, team in selected_teams_df.iterrows():
         # Get race performance
-        race_data = pd.read_sql_query(
+        race_data = db.execute_query(
             """
             SELECT AVG(r.position) as avg_position,
                    MIN(r.position) as best_position,
@@ -318,13 +311,12 @@ def show_team_performance(conn, year):
             JOIN sessions s ON r.session_id = s.id
             JOIN events e ON s.event_id = e.id
             WHERE d.team_id = ? AND e.year = ? AND s.session_type = 'race'
-            """,
-            conn,
+            """,            
             params=(team['id'], year)
         )
         
         # Get qualifying performance
-        quali_data = pd.read_sql_query(
+        quali_data = db.execute_query(
             """
             SELECT AVG(r.position) as avg_quali_position,
                    MIN(r.position) as best_quali_position
@@ -333,13 +325,12 @@ def show_team_performance(conn, year):
             JOIN sessions s ON r.session_id = s.id
             JOIN events e ON s.event_id = e.id
             WHERE d.team_id = ? AND e.year = ? AND s.session_type = 'qualifying'
-            """,
-            conn,
+            """,            
             params=(team['id'], year)
         )
         
         # Get podium and win count
-        results_data = pd.read_sql_query(
+        results_data = db.execute_query(
             """
             SELECT 
                 SUM(CASE WHEN r.position = 1 THEN 1 ELSE 0 END) as wins,
@@ -349,8 +340,7 @@ def show_team_performance(conn, year):
             JOIN sessions s ON r.session_id = s.id
             JOIN events e ON s.event_id = e.id
             WHERE d.team_id = ? AND e.year = ? AND s.session_type = 'race'
-            """,
-            conn,
+            """,            
             params=(team['id'], year)
         )
         
@@ -432,14 +422,13 @@ def show_team_performance(conn, year):
         st.subheader("Season Progress by Team")
         
         # Get events for the selected year
-        events = pd.read_sql_query(
+        events = db.execute_query(
             """
             SELECT id, round_number, event_name
             FROM events
             WHERE year = ?
             ORDER BY round_number
-            """,
-            conn,
+            """,            
             params=(year,)
         )
         
@@ -470,9 +459,8 @@ def show_team_performance(conn, year):
                     
                     params = [team_id] + event_ids
                     
-                    points_data = pd.read_sql_query(
-                        query,
-                        conn,
+                    points_data = db.execute_query(
+                        query,                        
                         params=params
                     )
                     
@@ -514,19 +502,18 @@ def show_team_performance(conn, year):
     else:
         st.info("No performance data available for the selected teams.")
 
-def show_tire_strategy(conn, year):
+def show_tire_strategy(db, year):
     """Analyze and visualize tire strategy patterns for teams and drivers."""
     st.subheader("Tire Strategy Analysis")
     
     # Get all events for the selected year
-    events_df = pd.read_sql_query(
+    events_df = db.execute_query(
         """
         SELECT id, round_number, event_name
         FROM events
         WHERE year = ?
         ORDER BY round_number
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -541,13 +528,12 @@ def show_tire_strategy(conn, year):
     event_id = events_df[events_df['event_name'] == selected_event]['id'].iloc[0]
     
     # Get race session for this event
-    race_session = pd.read_sql_query(
+    race_session = db.execute_query(
         """
         SELECT id
         FROM sessions
         WHERE event_id = ? AND session_type = 'race'
-        """,
-        conn,
+        """,        
         params=(event_id,)
     )
     
@@ -558,7 +544,7 @@ def show_tire_strategy(conn, year):
     session_id = race_session['id'].iloc[0]
     
     # Get tire usage data
-    tire_data = pd.read_sql_query(
+    tire_data = db.execute_query(
         """
         SELECT d.full_name as driver_name, t.name as team_name, t.team_color, 
                l.compound, COUNT(*) as lap_count
@@ -568,8 +554,7 @@ def show_tire_strategy(conn, year):
         WHERE l.session_id = ? AND l.compound IS NOT NULL
         GROUP BY d.id, l.compound
         ORDER BY t.name, d.full_name, l.compound
-        """,
-        conn,
+        """,        
         params=(session_id,)
     )
     
@@ -635,7 +620,7 @@ def show_tire_strategy(conn, year):
     st.subheader("Stint Analysis")
     
     # Get stint data
-    stint_data = pd.read_sql_query(
+    stint_data = db.execute_query(
         """
         SELECT d.full_name as driver_name, t.name as team_name, t.team_color,
                l.stint, l.compound, MIN(l.lap_number) as start_lap, MAX(l.lap_number) as end_lap,
@@ -646,8 +631,7 @@ def show_tire_strategy(conn, year):
         WHERE l.session_id = ? AND l.stint IS NOT NULL
         GROUP BY d.id, l.stint
         ORDER BY d.full_name, l.stint
-        """,
-        conn,
+        """,        
         params=(session_id,)
     )
     
@@ -698,7 +682,7 @@ def show_tire_strategy(conn, year):
     else:
         st.info("No stint data available for this race.")
 
-def show_pit_stop_analysis(conn, year):
+def show_pit_stop_analysis(db, year):
     """Analyze and visualize pit stop performance."""
     st.subheader("Pit Stop Analysis")
     
@@ -706,15 +690,14 @@ def show_pit_stop_analysis(conn, year):
     # A pit stop can be identified by a change in stint or compound
     
     # Get all events for the selected year with races
-    events_with_races = pd.read_sql_query(
+    events_with_races = db.execute_query(
         """
         SELECT DISTINCT e.id, e.round_number, e.event_name
         FROM events e
         JOIN sessions s ON e.id = s.event_id
         WHERE e.year = ? AND s.session_type = 'race'
         ORDER BY e.round_number
-        """,
-        conn,
+        """,        
         params=(year,)
     )
     
@@ -730,14 +713,13 @@ def show_pit_stop_analysis(conn, year):
         st.subheader("Season Pit Stop Performance")
         
         # Get teams for comparison
-        teams_df = pd.read_sql_query(
+        teams_df = db.execute_query(
             """
             SELECT DISTINCT id, name as team_name, team_color
             FROM teams
             WHERE year = ?
             ORDER BY name
-            """,
-            conn,
+            """,            
             params=(year,)
         )
         
@@ -748,7 +730,7 @@ def show_pit_stop_analysis(conn, year):
         # Get pit stop data across all races
         # This is a simplified version as we don't have actual pit stop timing data
         # Instead, we'll count the number of stints as a proxy for pit stops
-        pit_stops_by_team = pd.read_sql_query(
+        pit_stops_by_team = db.execute_query(
             """
             SELECT t.name as team_name, t.team_color, COUNT(DISTINCT l.stint) as pit_stop_count,
                    COUNT(DISTINCT s.id) as race_count
@@ -760,8 +742,7 @@ def show_pit_stop_analysis(conn, year):
             WHERE e.year = ? AND s.session_type = 'race' AND l.stint > 1
             GROUP BY t.id
             ORDER BY pit_stop_count
-            """,
-            conn,
+            """,            
             params=(year,)
         )
         
@@ -808,13 +789,12 @@ def show_pit_stop_analysis(conn, year):
         event_id = events_with_races[events_with_races['event_name'] == selected_event]['id'].iloc[0]
         
         # Get race session for this event
-        race_session = pd.read_sql_query(
+        race_session = db.execute_query(
             """
             SELECT id
             FROM sessions
             WHERE event_id = ? AND session_type = 'race'
-            """,
-            conn,
+            """,            
             params=(event_id,)
         )
         
@@ -826,7 +806,7 @@ def show_pit_stop_analysis(conn, year):
         
         # Get pit stop data for this race
         # Again, we're using stint changes as a proxy for pit stops
-        driver_pit_stops = pd.read_sql_query(
+        driver_pit_stops = db.execute_query(
             """
             SELECT d.full_name as driver_name, t.name as team_name, t.team_color,
                    COUNT(DISTINCT l.stint) - 1 as pit_stop_count
@@ -836,8 +816,7 @@ def show_pit_stop_analysis(conn, year):
             WHERE l.session_id = ?
             GROUP BY d.id
             ORDER BY pit_stop_count
-            """,
-            conn,
+            """,            
             params=(session_id,)
         )
         
@@ -871,7 +850,7 @@ def show_pit_stop_analysis(conn, year):
             st.plotly_chart(fig, use_container_width=True)
             
             # Get pit stop timing (lap numbers)
-            pit_stop_laps = pd.read_sql_query(
+            pit_stop_laps = db.execute_query(
                 """
                 SELECT d.full_name as driver_name, t.name as team_name, t.team_color,
                        l1.stint, MIN(l2.lap_number) as pit_lap
@@ -882,8 +861,7 @@ def show_pit_stop_analysis(conn, year):
                 WHERE l1.session_id = ? AND l2.stint > 1
                 GROUP BY d.id, l1.stint
                 ORDER BY d.full_name, l1.stint
-                """,
-                conn,
+                """,                
                 params=(session_id,)
             )
             

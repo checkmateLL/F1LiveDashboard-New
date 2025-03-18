@@ -5,160 +5,155 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 
+from backend.db_connection import get_db_handler
+
 def lap_times():
-    st.title("⏱ Lap Times Analysis")
-    
-    # Connect to the database
-    conn = sqlite3.connect("f1_data_full_2025.db")
+    st.title("⏱ Lap Times Analysis")  
     
     try:
-        # Get available years from the database
-        years_df = pd.read_sql_query("SELECT DISTINCT year FROM events ORDER BY year DESC", conn)
-        years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-        
-        # Allow user to select a season
-        if 'selected_year' in st.session_state:
-            default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
-        else:
-            default_year_index = 0
+        with get_db_handler() as db:
+
+            # Get available years from the database
+            years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
+            years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
             
-        year = st.selectbox("Select Season", years, index=default_year_index)
-        
-        # Update session state
-        st.session_state['selected_year'] = year
-        
-        # Get all events for the selected season
-        events_df = pd.read_sql_query(
-            """
-            SELECT id, round_number, country, location, official_event_name, 
-                   event_name, event_date, event_format
-            FROM events
-            WHERE year = ?
-            ORDER BY round_number
-            """,
-            conn,
-            params=(year,)
-        )
-        
-        # Allow user to select an event
-        event_options = events_df['event_name'].tolist() if not events_df.empty else []
-        
-        if 'selected_event' in st.session_state and st.session_state['selected_event']:
-            # Find the event name for the selected event ID
-            event_id = st.session_state['selected_event']
-            event_name_df = events_df[events_df['id'] == event_id]
-            if not event_name_df.empty:
-                default_event = event_name_df['event_name'].iloc[0]
-                if default_event in event_options:
-                    default_event_index = event_options.index(default_event)
+            # Allow user to select a season
+            if 'selected_year' in st.session_state:
+                default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
+            else:
+                default_year_index = 0
+                
+            year = st.selectbox("Select Season", years, index=default_year_index)
+            
+            # Update session state
+            st.session_state['selected_year'] = year
+            
+            # Get all events for the selected season
+            events_df = db.execute_query(
+                """
+                SELECT id, round_number, country, location, official_event_name, 
+                    event_name, event_date, event_format
+                FROM events
+                WHERE year = ?
+                ORDER BY round_number
+                """,                
+                params=(year,)
+            )
+            
+            # Allow user to select an event
+            event_options = events_df['event_name'].tolist() if not events_df.empty else []
+            
+            if 'selected_event' in st.session_state and st.session_state['selected_event']:
+                # Find the event name for the selected event ID
+                event_id = st.session_state['selected_event']
+                event_name_df = events_df[events_df['id'] == event_id]
+                if not event_name_df.empty:
+                    default_event = event_name_df['event_name'].iloc[0]
+                    if default_event in event_options:
+                        default_event_index = event_options.index(default_event)
+                    else:
+                        default_event_index = 0
                 else:
                     default_event_index = 0
             else:
                 default_event_index = 0
-        else:
-            default_event_index = 0
-            
-        selected_event_name = st.selectbox("Select Event", event_options, index=default_event_index)
-        
-        if not events_df.empty and selected_event_name:
-            # Get the event ID
-            event_id = events_df[events_df['event_name'] == selected_event_name]['id'].iloc[0]
-            
-            # Update session state
-            st.session_state['selected_event'] = event_id
-            
-            # Get all sessions for this event
-            sessions_df = pd.read_sql_query(
-                """
-                SELECT id, name, date, session_type, total_laps
-                FROM sessions
-                WHERE event_id = ?
-                ORDER BY date
-                """,
-                conn,
-                params=(event_id,)
-            )
-            
-            if not sessions_df.empty:
-                # Allow user to select a session
-                session_options = sessions_df['name'].tolist()
                 
-                if 'selected_session' in st.session_state and st.session_state['selected_session']:
-                    # Find the session name for the selected session ID
-                    session_id = st.session_state['selected_session']
-                    session_name_df = sessions_df[sessions_df['id'] == session_id]
-                    if not session_name_df.empty:
-                        default_session = session_name_df['name'].iloc[0]
-                        if default_session in session_options:
-                            default_session_index = session_options.index(default_session)
+            selected_event_name = st.selectbox("Select Event", event_options, index=default_event_index)
+            
+            if not events_df.empty and selected_event_name:
+                # Get the event ID
+                event_id = events_df[events_df['event_name'] == selected_event_name]['id'].iloc[0]
+                
+                # Update session state
+                st.session_state['selected_event'] = event_id
+                
+                # Get all sessions for this event
+                sessions_df = db.execute_query(
+                    """
+                    SELECT id, name, date, session_type, total_laps
+                    FROM sessions
+                    WHERE event_id = ?
+                    ORDER BY date
+                    """,                    
+                    params=(event_id,)
+                )
+                
+                if not sessions_df.empty:
+                    # Allow user to select a session
+                    session_options = sessions_df['name'].tolist()
+                    
+                    if 'selected_session' in st.session_state and st.session_state['selected_session']:
+                        # Find the session name for the selected session ID
+                        session_id = st.session_state['selected_session']
+                        session_name_df = sessions_df[sessions_df['id'] == session_id]
+                        if not session_name_df.empty:
+                            default_session = session_name_df['name'].iloc[0]
+                            if default_session in session_options:
+                                default_session_index = session_options.index(default_session)
+                            else:
+                                default_session_index = 0
                         else:
                             default_session_index = 0
                     else:
                         default_session_index = 0
+                    
+                    selected_session_name = st.selectbox("Select Session", session_options, index=default_session_index)
+                    
+                    # Get the session ID and type
+                    session_row = sessions_df[sessions_df['name'] == selected_session_name].iloc[0]
+                    session_id = session_row['id']
+                    session_type = session_row['session_type']
+                    
+                    # Update session state
+                    st.session_state['selected_session'] = session_id
+                    
+                    # Load lap times data
+                    laps_df = db.execute_query(
+                        """
+                        SELECT l.lap_number, l.lap_time, l.sector1_time, l.sector2_time, l.sector3_time,
+                            l.compound, l.tyre_life, l.is_personal_best, l.stint, l.track_status,
+                            l.deleted, l.deleted_reason, l.position,
+                            d.full_name as driver_name, d.abbreviation, d.driver_number,
+                            t.name as team_name, t.team_color
+                        FROM laps l
+                        JOIN drivers d ON l.driver_id = d.id
+                        JOIN teams t ON d.team_id = t.id
+                        WHERE l.session_id = ?
+                        ORDER BY l.lap_number, l.position
+                        """,                        
+                        params=(session_id,)
+                    )
+                    
+                    if not laps_df.empty:
+                        # Convert lap and sector times to seconds (they come as strings like "0 days 00:01:30.123456")
+                        laps_df['lap_time_sec'] = laps_df['lap_time'].apply(convert_time_to_seconds)
+                        laps_df['sector1_sec'] = laps_df['sector1_time'].apply(convert_time_to_seconds)
+                        laps_df['sector2_sec'] = laps_df['sector2_time'].apply(convert_time_to_seconds)
+                        laps_df['sector3_sec'] = laps_df['sector3_time'].apply(convert_time_to_seconds)
+                        
+                        # Create tabs for different analyses
+                        tab1, tab2, tab3, tab4 = st.tabs(["Lap Times", "Sector Analysis", "Stint/Tire Analysis", "Comparison"])
+                        
+                        with tab1:
+                            show_lap_time_analysis(laps_df, session_type)
+                        
+                        with tab2:
+                            show_sector_analysis(laps_df)
+                        
+                        with tab3:
+                            show_tire_analysis(laps_df)
+                        
+                        with tab4:
+                            show_driver_comparison(laps_df)
+                    else:
+                        st.warning("No lap times data available for this session.")
                 else:
-                    default_session_index = 0
-                
-                selected_session_name = st.selectbox("Select Session", session_options, index=default_session_index)
-                
-                # Get the session ID and type
-                session_row = sessions_df[sessions_df['name'] == selected_session_name].iloc[0]
-                session_id = session_row['id']
-                session_type = session_row['session_type']
-                
-                # Update session state
-                st.session_state['selected_session'] = session_id
-                
-                # Load lap times data
-                laps_df = pd.read_sql_query(
-                    """
-                    SELECT l.lap_number, l.lap_time, l.sector1_time, l.sector2_time, l.sector3_time,
-                           l.compound, l.tyre_life, l.is_personal_best, l.stint, l.track_status,
-                           l.deleted, l.deleted_reason, l.position,
-                           d.full_name as driver_name, d.abbreviation, d.driver_number,
-                           t.name as team_name, t.team_color
-                    FROM laps l
-                    JOIN drivers d ON l.driver_id = d.id
-                    JOIN teams t ON d.team_id = t.id
-                    WHERE l.session_id = ?
-                    ORDER BY l.lap_number, l.position
-                    """,
-                    conn,
-                    params=(session_id,)
-                )
-                
-                if not laps_df.empty:
-                    # Convert lap and sector times to seconds (they come as strings like "0 days 00:01:30.123456")
-                    laps_df['lap_time_sec'] = laps_df['lap_time'].apply(convert_time_to_seconds)
-                    laps_df['sector1_sec'] = laps_df['sector1_time'].apply(convert_time_to_seconds)
-                    laps_df['sector2_sec'] = laps_df['sector2_time'].apply(convert_time_to_seconds)
-                    laps_df['sector3_sec'] = laps_df['sector3_time'].apply(convert_time_to_seconds)
-                    
-                    # Create tabs for different analyses
-                    tab1, tab2, tab3, tab4 = st.tabs(["Lap Times", "Sector Analysis", "Stint/Tire Analysis", "Comparison"])
-                    
-                    with tab1:
-                        show_lap_time_analysis(laps_df, session_type)
-                    
-                    with tab2:
-                        show_sector_analysis(laps_df)
-                    
-                    with tab3:
-                        show_tire_analysis(laps_df)
-                    
-                    with tab4:
-                        show_driver_comparison(laps_df)
-                else:
-                    st.warning("No lap times data available for this session.")
+                    st.warning("No sessions available for this event.")
             else:
-                st.warning("No sessions available for this event.")
-        else:
-            st.info("Please select an event to view lap times.")
-    
+                st.info("Please select an event to view lap times.")
+        
     except Exception as e:
         st.error(f"Error loading lap times: {e}")
-    
-    finally:
-        conn.close()
 
 def convert_time_to_seconds(time_str):
     """Convert lap time strings to seconds."""

@@ -12,20 +12,20 @@ def create_navbar():
         
         if cols[0].button("🏠 Home"):
             selected = "Home"
-        if cols[1].button("🔴 Live"):
-            selected = "Live"
-        if cols[2].button("📅 Season"):
+        if cols[1].button("📊 Analytics"):  # Changed from "Live"
+            selected = "Analytics"
+        if cols[2].button("📽️ Race Replay"):  # New button for Race Replay
+            selected = "Race Replay"
+        if cols[3].button("📅 Season"):
             selected = "Season Overview"
-        if cols[3].button("🏁 Results"):
+        if cols[4].button("🏁 Results"):
             selected = "Race Results"
-        if cols[4].button("⏱️ Lap Times"):
+        if cols[5].button("⏱️ Lap Times"):
             selected = "Lap Times"
-        if cols[5].button("📡 Telemetry"):
+        if cols[6].button("📡 Telemetry"):
             selected = "Telemetry Analysis"
-        if cols[6].button("🏆 Standings"):
+        if cols[7].button("🏆 Standings"):
             selected = "Standings"
-        if cols[7].button("📊 Performance"):
-            selected = "Performance Analysis"
     
     # If nothing selected from navbar, use sidebar
     if not selected:
@@ -33,7 +33,8 @@ def create_navbar():
             "Navigation",
             [
                 "Home", 
-                "Live",
+                "Analytics", 
+                "Race Replay",
                 "Season Overview", 
                 "Race Results", 
                 "Lap Times", 
