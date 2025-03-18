@@ -1442,7 +1442,7 @@ def show_telemetry_analysis(session_id, db):
     selected_driver = st.selectbox("Select Driver", driver_options)
     
     # Get the driver ID
-    driver_id = drivers_df[drivers_df['driver_name'] == selected_driver]['id'].iloc[0]
+    driver_id = int(drivers_df[drivers_df['driver_name'] == selected_driver]['id'].iloc[0])
     driver_abbr = drivers_df[drivers_df['driver_name'] == selected_driver]['abbreviation'].iloc[0]
     driver_team_color = drivers_df[drivers_df['driver_name'] == selected_driver]['team_color'].iloc[0]
     
@@ -1458,7 +1458,8 @@ def show_telemetry_analysis(session_id, db):
     )
     
     if laps_df.empty:
-        st.warning("No lap telemetry data for selected driver.")
+        st.warning(f"No lap telemetry data for {selected_driver}. Please check if telemetry is available in the database.")
+        st.write("Available laps in database:", db.execute_query("SELECT DISTINCT lap_number FROM telemetry WHERE session_id = ?", (session_id,)))
         return
     
     # Allow user to select a lap
@@ -1508,7 +1509,8 @@ def show_telemetry_analysis(session_id, db):
         )
     
     if telemetry_df.empty:
-        st.warning("No telemetry data available for this lap.")
+        st.warning(f"No telemetry data available for {selected_driver} in lap {selected_lap}.")
+        st.write("Available telemetry in database:", db.execute_query("SELECT * FROM telemetry WHERE session_id = ? AND driver_id = ?", (session_id, driver_id)))
         return
     
     # Create tabs for different telemetry views
