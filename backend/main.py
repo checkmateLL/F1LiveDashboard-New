@@ -6,6 +6,7 @@ import uvicorn
 import os
 import logging
 import requests
+import fastf1
 
 from backend.data_service import F1DataService
 from backend.session_id_fix import patch_data_service

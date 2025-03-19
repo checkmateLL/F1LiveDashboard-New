@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 
 from backend.config import SQLITE_DB_PATH
-from backend.redis_live_service import RedisLiveDataService
+from archive.redis_live_service import RedisLiveDataService
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
