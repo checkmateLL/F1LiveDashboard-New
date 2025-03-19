@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 
 from backend.config import SQLITE_DB_PATH
-from archive.redis_live_service import RedisLiveDataService
+from backend.error_handling import DatabaseError, ResourceNotFoundError, handle_exception
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -13,20 +13,12 @@ logger.setLevel(logging.INFO)
 class F1DataService:
     """
     Abstraction layer for F1 data access.
-    Provides a unified interface for accessing historical (SQLite)
-    and live (Redis) data.
+    Provides a unified interface for accessing F1 data from SQLite.
     """
     def __init__(self, sqlite_path: str = SQLITE_DB_PATH):
         self.sqlite_path = sqlite_path
         self.sqlite_conn: Optional[sqlite3.Connection] = None
-        self.redis_service: Optional[RedisLiveDataService] = None
         self._init_sqlite()
-        try:
-            self.redis_service = RedisLiveDataService()
-            logger.info("Redis live data service initialized")
-        except Exception as e:
-            logger.warning(f"Redis live data service not available: {e}")
-            self.redis_service = None
 
     def _init_sqlite(self) -> None:
         try:
@@ -35,53 +27,36 @@ class F1DataService:
                 self.sqlite_conn.row_factory = sqlite3.Row
                 logger.info(f"Connected to SQLite database: {self.sqlite_path}")
             else:
-                logger.warning(f"SQLite database does not exist: {self.sqlite_path}")
-                self.sqlite_conn = None
+                logger.error(f"SQLite database does not exist: {self.sqlite_path}")
+                raise DatabaseError(f"Database file not found: {self.sqlite_path}")
         except sqlite3.Error as e:
-            logger.error(f"Error connecting to SQLite database: {e}")
-            self.sqlite_conn = None
+            msg = f"Error connecting to SQLite database: {e}"
+            logger.error(msg)
+            raise DatabaseError(msg)
 
-    def _get_sqlite_cursor(self) -> Optional[sqlite3.Cursor]:
+    def _get_sqlite_cursor(self) -> sqlite3.Cursor:
         if not self.sqlite_conn:
             self._init_sqlite()
-        if self.sqlite_conn:
-            return self.sqlite_conn.cursor()
-        return None
+        if not self.sqlite_conn:
+            raise DatabaseError("Database connection not available")
+        return self.sqlite_conn.cursor()
 
     def close(self) -> None:
         if self.sqlite_conn:
             self.sqlite_conn.close()
             logger.info("Closed SQLite connection")
-        if self.redis_service:
-            self.redis_service.stop_polling()
-            logger.info("Stopped Redis polling")
 
     def get_available_years(self) -> List[int]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("SELECT DISTINCT year FROM events ORDER BY year DESC")
             return [row[0] for row in cursor.fetchall()]
-        except sqlite3.Error as e:
-            logger.error(f"Error getting available years: {e}")
-            return []
-
-    def get_current_session(self) -> Optional[Dict[str, Any]]:
-        if self.redis_service:
-            return self.redis_service.get_live_session()
-        return None
-
-    def start_live_polling(self) -> bool:
-        if self.redis_service:
-            self.redis_service.start_polling()
-            return True
-        return False
+        except Exception as e:
+            error = handle_exception("get_available_years", e)
+            raise error
 
     def get_events(self, year: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("""
                 SELECT id, round_number, country, location, official_event_name,
@@ -104,14 +79,12 @@ class F1DataService:
                     'f1_api_support': bool(row['f1_api_support'])
                 })
             return events
-        except sqlite3.Error as e:
-            logger.error(f"Error getting events: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_events", e)
+            raise error
 
-    def get_event(self, year: int, round_number: int) -> Optional[Dict[str, Any]]:
+    def get_event(self, year: int, round_number: int) -> Dict[str, Any]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return None
         try:
             cursor.execute("""
                 SELECT id, round_number, country, location, official_event_name,
@@ -120,27 +93,33 @@ class F1DataService:
                 WHERE year = ? AND round_number = ?
             """, (year, round_number))
             row = cursor.fetchone()
-            if row:
-                return {
-                    'id': row['id'],
-                    'round_number': row['round_number'],
-                    'country': row['country'],
-                    'location': row['location'],
-                    'official_event_name': row['official_event_name'],
-                    'event_name': row['event_name'],
-                    'event_date': row['event_date'],
-                    'event_format': row['event_format'],
-                    'f1_api_support': bool(row['f1_api_support'])
-                }
-            return None
-        except sqlite3.Error as e:
-            logger.error(f"Error getting event: {e}")
-            return None
+            
+            if not row:
+                raise ResourceNotFoundError(
+                    resource_type="Event", 
+                    identifier=f"year={year}, round={round_number}"
+                )
+                
+            return {
+                'id': row['id'],
+                'round_number': row['round_number'],
+                'country': row['country'],
+                'location': row['location'],
+                'official_event_name': row['official_event_name'],
+                'event_name': row['event_name'],
+                'event_date': row['event_date'],
+                'event_format': row['event_format'],
+                'f1_api_support': bool(row['f1_api_support'])
+            }
+        except ResourceNotFoundError:
+            # Re-raise resource not found errors
+            raise
+        except Exception as e:
+            error = handle_exception("get_event", e)
+            raise error
 
     def get_sessions(self, event_id: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("""
                 SELECT id, name, date, session_type, total_laps, session_start_time, t0_date
@@ -168,14 +147,12 @@ class F1DataService:
                     't0_date': row['t0_date']
                 })
             return sessions
-        except sqlite3.Error as e:
-            logger.error(f"Error getting sessions: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_sessions", e)
+            raise error
 
     def get_teams(self, year: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("""
                 SELECT id, name, team_id, team_color
@@ -192,14 +169,12 @@ class F1DataService:
                     'team_color': row['team_color']
                 })
             return teams
-        except sqlite3.Error as e:
-            logger.error(f"Error getting teams: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_teams", e)
+            raise error
 
     def get_drivers(self, year: int, team_id: Optional[int] = None) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             query = """
                 SELECT d.id, d.driver_number, d.broadcast_name, d.abbreviation,
@@ -234,20 +209,12 @@ class F1DataService:
                     'team_color': row['team_color']
                 })
             return drivers
-        except sqlite3.Error as e:
-            logger.error(f"Error getting drivers: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_drivers", e)
+            raise error
 
     def get_driver_standings(self, year: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
-        # Check if live standings are available (via Redis)
-        current_session = self.get_current_session()
-        if current_session and current_session.get('year') == year and self.redis_service:
-            live_standings = self.redis_service.get_live_standings()
-            if live_standings:
-                return live_standings
         try:
             cursor.execute("""
                 SELECT d.id, d.full_name, d.abbreviation, t.name as team_name, t.team_color,
@@ -273,14 +240,12 @@ class F1DataService:
                     'points': row['total_points']
                 })
             return standings
-        except sqlite3.Error as e:
-            logger.error(f"Error getting driver standings: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_driver_standings", e)
+            raise error
 
     def get_constructor_standings(self, year: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("""
                 SELECT t.id, t.name as team_name, t.team_color,
@@ -304,14 +269,12 @@ class F1DataService:
                     'points': row['total_points']
                 })
             return standings
-        except sqlite3.Error as e:
-            logger.error(f"Error getting constructor standings: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_constructor_standings", e)
+            raise error
 
     def get_race_results(self, session_id: int) -> List[Dict[str, Any]]:
         cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return []
         try:
             cursor.execute("""
                 SELECT r.position, r.grid_position, r.points, r.status, r.race_time,
@@ -338,14 +301,13 @@ class F1DataService:
                     'race_time': row['race_time']
                 })
             return results
-        except sqlite3.Error as e:
-            logger.error(f"Error getting race results: {e}")
-            return []
+        except Exception as e:
+            error = handle_exception("get_race_results", e)
+            raise error
 
     def get_lap_times(self, session_id: int, driver_id: Optional[int] = None) -> pd.DataFrame:
-        cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return pd.DataFrame()
+        if not self.sqlite_conn:
+            raise DatabaseError("Database connection not available")
         
         try:
             query = """
@@ -371,13 +333,16 @@ class F1DataService:
             return df
             
         except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            logger.error(f"Error getting lap times: {e}")
-            return pd.DataFrame()
+            error_msg = f"Error getting lap times: {e}"
+            logger.error(error_msg)
+            raise DatabaseError(error_msg)
+        except Exception as e:
+            error = handle_exception("get_lap_times", e)
+            raise error
 
     def get_telemetry(self, session_id: int, driver_id: int, lap_number: int) -> pd.DataFrame:
-        cursor = self._get_sqlite_cursor()
-        if not cursor:
-            return pd.DataFrame()
+        if not self.sqlite_conn:
+            raise DatabaseError("Database connection not available")
         
         try:
             query = """
@@ -394,18 +359,20 @@ class F1DataService:
             return df
             
         except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            logger.error(f"Error getting telemetry data: {e}")
-            return pd.DataFrame()
+            error_msg = f"Error getting telemetry data: {e}"
+            logger.error(error_msg)
+            raise DatabaseError(error_msg)
+        except Exception as e:
+            error = handle_exception("get_telemetry", e)
+            raise error
 
     def get_track_weather(self, latitude: float, longitude: float):
-        """Fetch live track weather using Open-Meteo API or from Redis for current session."""
-        if self.redis_service:
-            live_weather = self.redis_service.get_live_weather()
-            if live_weather:
-                return live_weather
-        
-        # Fall back to the weather service if no Redis data
+        """Fetch track weather using Open-Meteo API."""
         from backend.weather import get_track_weather as fetch_weather
-        return fetch_weather(latitude, longitude)
-
-    # Add other methods for telemetry, lap times, etc.
+        
+        try:
+            return fetch_weather(latitude, longitude)
+        except Exception as e:
+            error_msg = f"Error fetching weather data: {e}"
+            logger.error(error_msg)
+            raise DatabaseError(error_msg)

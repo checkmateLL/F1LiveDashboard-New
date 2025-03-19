@@ -8,6 +8,23 @@ import plotly.graph_objects as go
 from frontend.components.event_cards import event_cards_grid
 from backend.db_connection import get_db_handler
 
+def handle_api_error(func):
+    """Decorator to handle API errors consistently."""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            st.error(f"API Error: {str(e)}")
+            if hasattr(e, 'response') and hasattr(e.response, 'json'):
+                try:
+                    error_details = e.response.json()
+                    if 'details' in error_details:
+                        st.write("Error details:", error_details['details'])
+                except:
+                    pass
+            return None
+    return wrapper
+
 def season_overview():
     st.title("📅 F1 Season Overview")    
     
@@ -186,6 +203,7 @@ def display_season_format(events_df, year):
     else:
         st.info("Event format information not available.")
 
+@handle_api_error
 def display_event_details(event_id, db):
     """Display detailed information about a specific event."""
     # Get event details
