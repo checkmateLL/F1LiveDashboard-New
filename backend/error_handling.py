@@ -66,6 +66,17 @@ class ValidationError(F1DashboardError):
         )
         logger.warning(f"Validation error: {message}")
 
+class ExternalServiceError(F1DashboardError):
+    """Errors from external services."""
+    def __init__(self, service_name: str, message: str, details: Optional[Dict[str, Any]] = None):
+        full_message = f"Error from {service_name}: {message}"
+        super().__init__(
+            message=full_message,
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            details=details
+        )
+        logger.error(f"External service error: {full_message}")
+        
 # Utility functions
 def log_and_raise(error: F1DashboardError) -> None:
     """Log the error and raise it for the exception handler."""
