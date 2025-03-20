@@ -22,8 +22,8 @@ def home():
 
         # Fetch all events for the selected year
         events_df = data_service.get_events(st.session_state["selected_year"])
-        if events_df.empty:
-            st.warning("No events found for this season.")
+        if not events_df or len(events_df) == 0:
+            st.warning("No events available for this season.")
             return
 
         today = datetime.now()

@@ -20,20 +20,22 @@ def lap_times():
         
         # Determine default year from session state
         default_year = st.session_state.get("selected_year", years[0])
-        year = st.selectbox("Select Season", options=years, index=years.index(default_year))
+        year = st.selectbox("Select Season", options=years, index=years.index(default_year), key="laptimes_year")
         st.session_state["selected_year"] = year
 
         # Get events for the selected season
         events = data_service.get_events(year)
         event_options = {event["event_name"]: event["id"] for event in events}
         
-        if not events:
-            st.warning("No events available for this season.")
+        if not events or len(events) == 0:
+            st.warning("No events available.")
             return
         
         # Determine default event from session state
         default_event = st.session_state.get("selected_event", next(iter(event_options.values())))
-        selected_event = st.selectbox("Select Event", options=event_options.keys(), index=list(event_options.keys()).index(default_event))
+        selected_event = st.selectbox("Select Event", options=event_options.keys(), 
+                              index=list(event_options.values()).index(default_event_id),
+                              key="laptimes_event")
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
 

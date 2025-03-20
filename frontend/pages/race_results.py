@@ -17,19 +17,21 @@ def race_results():
         # Get available years
         years = data_service.get_available_years()
         default_year = st.session_state.get("selected_year", years[0])
-        year = st.selectbox("Select Season", years, index=years.index(default_year))
+        year = st.selectbox("Select Season", years, index=years.index(default_year), key="results_year")
         st.session_state["selected_year"] = year
 
         # Get events for the selected year
         events_df = data_service.get_events(year)
-        if events_df.empty:
+        if not events_df or len(events_df) == 0:
             st.warning("No events available for this season.")
             return
 
         # Default to the first available event
         event_options = {event["event_name"]: event["id"] for event in events_df}
         default_event_id = st.session_state.get("selected_event", next(iter(event_options.values())))
-        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(default_event_id))
+        selected_event = st.selectbox("Select Event", event_options.keys(), 
+                              index=list(event_options.values()).index(default_event_id),
+                              key="results_event")
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
 

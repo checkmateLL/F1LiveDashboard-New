@@ -13,17 +13,21 @@ st.title("Pit Stop Performance Analysis (Optimized Query Execution & ID Handling
 
 def get_pit_stop_data(session_id):
     """
-    Retrieves pit stop times and effectiveness per driver.
+    Retrieves pit stop times and effectiveness per driver by analyzing lap data.
     """
     session_id = int(session_id)  # Ensure session_id is integer
     query = """
-        SELECT drivers.driver_name, drivers.team_name, pit_stops.lap_number, pit_stops.stop_time, 
-               pit_stops.total_stops, results.classified_position
-        FROM pit_stops
-        JOIN drivers ON pit_stops.driver_id = drivers.driver_id
-        JOIN results ON pit_stops.driver_id = results.driver_id AND pit_stops.session_id = results.session_id
-        WHERE pit_stops.session_id = ?
-        ORDER BY pit_stops.lap_number
+        SELECT l.driver_id, d.full_name as driver_name, t.name as team_name, 
+               l.lap_number, l.pit_in_time, l.pit_out_time,
+               COUNT(DISTINCT l.stint) - 1 as total_stops,
+               r.position as classified_position
+        FROM laps l
+        JOIN drivers d ON l.driver_id = d.id
+        JOIN teams t ON d.team_id = t.id
+        LEFT JOIN results r ON l.driver_id = r.driver_id AND l.session_id = r.session_id
+        WHERE l.session_id = ? AND (l.pit_in_time IS NOT NULL OR l.pit_out_time IS NOT NULL)
+        GROUP BY l.driver_id
+        ORDER BY l.lap_number
     """
     
     with get_db_handler() as db:
@@ -66,7 +70,7 @@ def plot_pit_stop_effectiveness(df):
 
 # Fetch session data
 with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM pit_stops")
+    sessions = db.execute_query("SELECT DISTINCT session_id FROM laps WHERE pit_in_time IS NOT NULL OR pit_out_time IS NOT NULL")
 
 session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
 selected_session = st.selectbox("Select Session", session_list if session_list else [0])

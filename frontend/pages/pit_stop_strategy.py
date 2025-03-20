@@ -18,14 +18,16 @@ def get_pit_stop_data(session_id):
     """
     session_id = int(session_id)  # Ensure session_id is integer
     query = """
-        SELECT laps.lap_number, drivers.driver_name, laps.lap_time, laps.compound, 
-               pit_stops.total_stops, pit_stops.stint_length, results.classified_position
-        FROM laps
-        JOIN drivers ON laps.driver_id = drivers.driver_id
-        JOIN pit_stops ON laps.driver_id = pit_stops.driver_id AND laps.session_id = pit_stops.session_id
-        JOIN results ON laps.driver_id = results.driver_id AND laps.session_id = results.session_id
-        WHERE laps.session_id = ?
-        ORDER BY laps.lap_number, drivers.driver_name
+        SELECT l.lap_number, d.full_name as driver_name, l.lap_time, l.compound, 
+               COUNT(DISTINCT l.stint) - 1 as total_stops,
+               MAX(l.tyre_life) as stint_length, 
+               r.position as classified_position
+        FROM laps l
+        JOIN drivers d ON l.driver_id = d.id
+        LEFT JOIN results r ON l.driver_id = r.driver_id AND l.session_id = r.session_id
+        WHERE l.session_id = ?
+        GROUP BY l.driver_id
+        ORDER BY l.lap_number, d.full_name
     """
     
     with get_db_handler() as db:

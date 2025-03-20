@@ -23,7 +23,7 @@ def season_overview():
 
         # Fetch all events for the selected season
         events_df = data_service.get_events(selected_year)
-        if events_df.empty:
+        if not events_df or len(events_df) == 0:
             st.warning("No events available for this season.")
             return
 

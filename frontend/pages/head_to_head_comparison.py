@@ -20,11 +20,11 @@ def get_head_to_head_data(session_id, driver1_id, driver2_id):
     driver2_id = int(driver2_id)
     
     query = """
-        SELECT laps.lap_number, drivers.driver_name, laps.lap_time
+        SELECT laps.lap_number, drivers.full_name, laps.lap_time
         FROM laps
         JOIN drivers ON laps.driver_id = drivers.driver_id
         WHERE laps.session_id = ? AND (laps.driver_id = ? OR laps.driver_id = ?)
-        ORDER BY laps.lap_number, drivers.driver_name
+        ORDER BY laps.lap_number, drivers.full_name
     """
     
     with get_db_handler() as db:
@@ -84,7 +84,7 @@ def plot_overtake_comparison(df):
 # Fetch session and driver data
 with get_db_handler() as db:
     sessions = db.execute_query("SELECT DISTINCT session_id FROM laps")
-    drivers = db.execute_query("SELECT DISTINCT driver_id, driver_name FROM drivers")
+    drivers = db.execute_query("SELECT DISTINCT driver_id, full_name FROM drivers")
 
 session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
 driver_dict = {int(driver["driver_id"]): driver["driver_name"] for driver in drivers if isinstance(driver, dict) and "driver_id" in driver}

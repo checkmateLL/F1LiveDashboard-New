@@ -17,12 +17,14 @@ def race_replay():
         # Get available years
         available_years = data_service.get_available_years()
         default_year = st.session_state.get("selected_year", available_years[0])
-        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(default_year))
+        selected_year = st.selectbox("Select Season", available_years, 
+                             index=available_years.index(default_year),
+                             key="replay_year")
         st.session_state["selected_year"] = selected_year
 
         # Get all events for the selected season
         events_df = data_service.get_events(selected_year)
-        if events_df.empty:
+        if not events_df or len(events_df) == 0:
             st.warning("No events available for this season.")
             return
 

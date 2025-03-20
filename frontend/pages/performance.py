@@ -559,8 +559,8 @@ def show_tire_strategy(db, year):
         params=(year,)
     )
     
-    if events_df.empty:
-        st.info("No event data available for this season.")
+    if not events_df or len(events_df) == 0:
+        st.warning("No events available for this season.")
         return
     
     # Allow user to select an event

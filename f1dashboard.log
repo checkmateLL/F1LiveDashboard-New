@@ -19,3 +19,23 @@ Traceback (most recent call last):
   File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
     raise ex from exc
 pandas.errors.DatabaseError: Execution failed on sql 'SELECT DISTINCT session_id FROM overtakes': no such table: overtakes
+2025-03-20 14:34:43,007 - f1dashboard - ERROR - Database error: Database query execution error: no such column: driver_name
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 170, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such column: driver_name
+2025-03-20 14:35:57,143 - f1dashboard - ERROR - Database error: Database query execution error: no such column: driver_name
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 170, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such column: driver_name
+2025-03-20 14:36:32,103 - f1dashboard - ERROR - Database error: Database query execution error: no such table: pit_stops
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 170, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such table: pit_stops
+2025-03-20 14:36:53,370 - f1dashboard - ERROR - Database error: Database query execution error: no such table: pit_stops
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 170, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such table: pit_stops

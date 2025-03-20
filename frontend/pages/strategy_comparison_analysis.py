@@ -33,7 +33,12 @@ def strategy_comparison_analysis():
 
         # Fetch race sessions
         sessions = data_service.get_race_sessions(event_id)
-        if not sessions:
+        if not sessions or len(sessions) == 0:
+            st.warning("No sessions available.")
+            return
+        # Then filter for race sessions only
+        race_sessions = [s for s in sessions if s.get("session_type") == "race"]
+        if not race_sessions:
             st.warning("No race sessions available.")
             return
 

@@ -58,7 +58,8 @@ async def handle_general_exception(request, exc: Exception):
 @app.on_event("startup")
 async def startup_event():
     app.state.data_service = F1DataService()
-    patch_data_service()  # Apply the session ID patch
+    logger.info(f"Startup: Using SQLite DB at {app.state.data_service.sqlite_path}")
+    patch_data_service()
     logger.info("Startup: Data service initialized")
 
 # Shutdown event
