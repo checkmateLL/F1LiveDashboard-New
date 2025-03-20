@@ -2,6 +2,14 @@ import sys
 import os
 import streamlit as st
 
+# Set Page Configuration
+st.set_page_config(
+    page_title="F1 Dashboard",
+    page_icon="🏎️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 # Ensure Python recognizes backend directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -22,13 +30,7 @@ try:
 except ImportError as e:
     st.error(f"⚠️ Page import failed: {e}")
 
-# Set Page Configuration
-st.set_page_config(
-    page_title="F1 Dashboard",
-    page_icon="🏎️",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+
 
 # Store current page in session state for persistent navigation
 if "current_page" not in st.session_state:

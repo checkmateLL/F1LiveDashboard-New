@@ -1,120 +1,136 @@
-# frontend/pages/strategy_comparison_analysis.py
-
+import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
-from backend.db_connection import get_db_handler
+import plotly.express as px
+import plotly.graph_objects as go
 
-st.set_page_config(layout="wide")
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
 
-st.title("Strategy Comparison & Effectiveness Analysis (Optimized Query Execution & ID Handling)")
+# Initialize data service
+data_service = F1DataService()
 
-def get_strategy_data(session_id):
+def strategy_comparison_analysis():
+    """Race Strategy & Performance Analysis Dashboard."""
+    st.title("🏎️ Strategy Comparison & Effectiveness Analysis")
+
+    try:
+        # Fetch available years
+        available_years = data_service.get_available_years()
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        st.session_state["selected_year"] = selected_year
+
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
+            return
+
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
+            return
+
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Fetch race results
+        results_df = data_service.get_race_results(session_id)
+        if results_df.empty:
+            st.warning("No race results available.")
+            return
+
+        # Fetch lap data (used to derive pit stops & strategy)
+        laps_df = data_service.get_lap_times(session_id)
+        if laps_df.empty:
+            st.warning("No lap data available.")
+            return
+
+        # Derive pit stops by detecting compound changes
+        results_df["total_stops"] = results_df["driver_id"].map(lambda driver: calculate_pit_stops(laps_df, driver))
+
+        # Merge data for strategy analysis
+        strategy_df = results_df[["driver_name", "team_name", "grid_position", "position", "total_stops", "race_time"]]
+        strategy_df["race_time_sec"] = strategy_df["race_time"].apply(convert_time_to_seconds)
+
+        # Create visualization tabs
+        tab1, tab2, tab3 = st.tabs(["Pit Stops & Position", "Tire Compound Usage", "Race Time vs Pit Stops"])
+
+        with tab1:
+            plot_strategy_vs_position(strategy_df)
+
+        with tab2:
+            plot_tire_compound_vs_performance(laps_df, results_df)
+
+        with tab3:
+            plot_pit_stops_vs_race_time(strategy_df)
+
+        # Display full dataset
+        st.subheader("📊 Strategy Effectiveness Data")
+        st.dataframe(strategy_df.drop(columns=["race_time"]), use_container_width=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Unexpected error: {e}")
+
+def calculate_pit_stops(laps_df, driver_id):
     """
-    Retrieves pit stop strategies, tire compounds, fuel loads, and total race time using optimized query execution.
+    Detects pit stops based on tire compound changes.
     """
-    session_id = int(session_id)  # Ensure session_id is integer
-    query = """
-        SELECT drivers.driver_name, drivers.team_name, results.grid_position, results.classified_position, 
-               results.total_race_time, pit_stops.total_stops, pit_stops.strategy_type, 
-               laps.compound, laps.fuel_load, telemetry.speed, telemetry.throttle, telemetry.brake
-        FROM results
-        JOIN drivers ON results.driver_id = drivers.driver_id
-        JOIN pit_stops ON results.driver_id = pit_stops.driver_id AND results.session_id = pit_stops.session_id
-        JOIN laps ON results.driver_id = laps.driver_id AND results.session_id = laps.session_id
-        JOIN telemetry ON laps.driver_id = telemetry.driver_id AND laps.lap_number = telemetry.lap_number AND laps.session_id = telemetry.session_id
-        WHERE results.session_id = ?
-        ORDER BY results.classified_position
+    driver_laps = laps_df[laps_df["driver_id"] == driver_id].sort_values("lap_number")
+    if driver_laps.empty or "compound" not in driver_laps.columns:
+        return 0
+
+    # Count compound changes as pit stops
+    return driver_laps["compound"].nunique() - 1
+
+def convert_time_to_seconds(time_str):
     """
-    
-    with get_db_handler() as db:
-        df = db.execute_query(query, (session_id,))
-    
-    return df
+    Converts race time format to total seconds.
+    """
+    if pd.isna(time_str) or time_str is None:
+        return None
+    try:
+        parts = time_str.split(" ")
+        time_part = parts[-1]
+        h, m, s = map(float, time_part.split(":"))
+        return h * 3600 + m * 60 + s
+    except Exception:
+        return None
 
 def plot_strategy_vs_position(df):
     """
-    Compares race strategy type vs final position.
+    Compares pit stop strategy vs final position.
     """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(ax=ax, x="strategy_type", y="classified_position", data=df)
-    ax.set_xlabel("Strategy Type")
-    ax.set_ylabel("Final Position")
-    ax.set_title("Effectiveness of Race Strategies")
-    st.pyplot(fig)
+    fig = px.box(df, x="total_stops", y="position", color="team_name", title="Effectiveness of Pit Stop Strategies")
+    fig.update_layout(xaxis_title="Total Pit Stops", yaxis_title="Final Position")
+    st.plotly_chart(fig, use_container_width=True)
+
+def plot_tire_compound_vs_performance(laps_df, results_df):
+    """
+    Evaluates performance of tire compounds used in different strategies.
+    """
+    merged_df = laps_df.merge(results_df, on="driver_id", how="inner")
+
+    fig = px.box(merged_df, x="compound", y="position", color="team_name", title="Tire Compound Performance Comparison")
+    fig.update_layout(xaxis_title="Tire Compound", yaxis_title="Final Position")
+    st.plotly_chart(fig, use_container_width=True)
 
 def plot_pit_stops_vs_race_time(df):
     """
     Analyzes how pit stop count affects race time.
     """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(ax=ax, x="total_stops", y="total_race_time", hue="strategy_type", data=df, s=100)
-    ax.set_xlabel("Total Pit Stops")
-    ax.set_ylabel("Total Race Time (s)")
-    ax.set_title("Impact of Pit Stop Count on Race Time")
-    st.pyplot(fig)
+    fig = px.scatter(df, x="total_stops", y="race_time_sec", color="team_name", title="Impact of Pit Stop Count on Race Time")
+    fig.update_layout(xaxis_title="Total Pit Stops", yaxis_title="Total Race Time (s)")
+    st.plotly_chart(fig, use_container_width=True)
 
-def plot_tire_compound_vs_performance(df):
-    """
-    Evaluates performance of tire compounds used in different strategies.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(ax=ax, x="compound", y="classified_position", data=df)
-    ax.set_xlabel("Tire Compound")
-    ax.set_ylabel("Final Position")
-    ax.set_title("Tire Compound Performance Comparison")
-    st.pyplot(fig)
-
-def plot_fuel_usage_vs_performance(df):
-    """
-    Compares fuel load impact on race performance.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(ax=ax, x="fuel_load", y="classified_position", alpha=0.5)
-    ax.set_xlabel("Average Fuel Load (kg)")
-    ax.set_ylabel("Final Position")
-    ax.set_title("Fuel Load Impact on Race Results")
-    st.pyplot(fig)
-
-def plot_telemetry_vs_performance(df):
-    """
-    Analyzes the relationship between speed, throttle, and braking with race outcomes.
-    """
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
-    sns.scatterplot(ax=axes[0], x=df["speed"], y=df["classified_position"], alpha=0.5)
-    axes[0].set_title("Speed vs. Final Position")
-    axes[0].set_xlabel("Speed (km/h)")
-    axes[0].set_ylabel("Final Position")
-    
-    sns.scatterplot(ax=axes[1], x=df["throttle"], y=df["classified_position"], alpha=0.5)
-    axes[1].set_title("Throttle vs. Final Position")
-    axes[1].set_xlabel("Throttle (%)")
-    
-    sns.scatterplot(ax=axes[2], x=df["brake"], y=df["classified_position"], alpha=0.5)
-    axes[2].set_title("Brake Usage vs. Final Position")
-    axes[2].set_xlabel("Brake Pressure (%)")
-    
-    st.pyplot(fig)
-
-# Fetch session data
-with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM results")
-
-session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-selected_session = st.selectbox("Select Session", session_list if session_list else [0])
-
-df = get_strategy_data(selected_session)
-
-if not df.empty:
-    plot_strategy_vs_position(df)
-    plot_pit_stops_vs_race_time(df)
-    plot_tire_compound_vs_performance(df)
-    plot_fuel_usage_vs_performance(df)
-    plot_telemetry_vs_performance(df)
-    
-    st.write("### Strategy Effectiveness Data")
-    st.dataframe(df)
-else:
-    st.warning("No strategy data available for this session.")
+strategy_comparison_analysis()

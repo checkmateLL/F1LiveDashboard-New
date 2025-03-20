@@ -1,97 +1,133 @@
-# frontend/pages/overtakes_analysis.py
-
+import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
-from backend.db_connection import get_db_handler
+import plotly.express as px
 
-st.set_page_config(layout="wide")
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
 
-st.title("Overtakes Analysis (Optimized Query Execution & ID Handling)")
+# Initialize data service
+data_service = F1DataService()
 
-def get_overtakes_data(session_id):
-    """
-    Retrieves overtakes data for the given session, including sector and DRS usage.
-    """
-    session_id = int(session_id)  # Ensure session_id is integer
-    query = """
-        SELECT overtakes.lap_number, overtakes.sector, drivers.driver_name AS overtaking_driver, 
-               overtakes.overtaken_driver, overtakes.overtake_position, overtakes.drs_used
-        FROM overtakes
-        JOIN drivers ON overtakes.driver_id = drivers.driver_id
-        WHERE overtakes.session_id = ?
-        ORDER BY overtakes.lap_number, overtakes.sector
-    """
-    
-    with get_db_handler() as db:
-        df = db.execute_query(query, (session_id,))
-    
-    return df
+def overtakes_analysis():
+    """Overtake Analysis & Race Progression."""
+    st.title("🏎️ Overtakes Analysis")
 
-def plot_overtakes_distribution(df):
+    try:
+        # Fetch available years
+        available_years = data_service.get_available_years()
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        st.session_state["selected_year"] = selected_year
+
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
+            return
+
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
+            return
+
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Detect overtakes dynamically
+        overtakes_df = detect_overtakes(session_id)
+        if overtakes_df.empty:
+            st.warning("No overtakes detected for this session.")
+            return
+
+        # Create visualization tabs
+        tab1, tab2, tab3 = st.tabs(["Overtakes Timeline", "Overtakes by Sector", "DRS Usage Impact"])
+
+        with tab1:
+            plot_overtakes_timeline(overtakes_df)
+
+        with tab2:
+            plot_overtakes_by_sector(overtakes_df)
+
+        with tab3:
+            plot_drs_impact(overtakes_df)
+
+        # Display dataset
+        st.subheader("📊 Overtakes Data")
+        st.dataframe(overtakes_df, use_container_width=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Unexpected error: {e}")
+
+def detect_overtakes(session_id):
     """
-    Displays the number of overtakes per driver.
+    Detect overtakes based on position changes between consecutive laps.
     """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.countplot(ax=ax, y=df["overtaking_driver"], order=df["overtaking_driver"].value_counts().index)
-    ax.set_xlabel("Number of Overtakes")
-    ax.set_ylabel("Driver")
-    ax.set_title("Total Overtakes Per Driver")
-    st.pyplot(fig)
+    laps_df = data_service.get_lap_times(session_id)
+    if laps_df.empty:
+        return pd.DataFrame()
+
+    # Sort laps by lap number and driver
+    laps_df = laps_df.sort_values(["driver_id", "lap_number"])
+
+    # Shift position data to compare with previous lap
+    laps_df["prev_position"] = laps_df.groupby("driver_id")["position"].shift(1)
+    laps_df["overtook"] = laps_df["prev_position"] > laps_df["position"]
+
+    # Filter overtakes
+    overtakes_df = laps_df[laps_df["overtook"]].copy()
+    overtakes_df["overtaken_driver"] = overtakes_df.groupby("driver_id")["driver_name"].shift(1)
+
+    # Fetch sector & DRS usage
+    telemetry_df = data_service.get_telemetry(session_id)
+    if not telemetry_df.empty:
+        telemetry_df["drs_used"] = telemetry_df["drs"].diff() > 0
+        overtakes_df = overtakes_df.merge(telemetry_df[["driver_id", "lap_number", "sector", "drs_used"]], on=["driver_id", "lap_number"], how="left")
+
+    return overtakes_df[["lap_number", "sector", "driver_name", "overtaken_driver", "position", "drs_used"]]
 
 def plot_overtakes_timeline(df):
-    """
-    Visualizes overtakes over the course of the race.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    for driver in df["overtaking_driver"].unique():
-        driver_df = df[df["overtaking_driver"] == driver]
-        ax.scatter(driver_df["lap_number"], [driver] * len(driver_df), label=driver, s=100)
-    ax.set_xlabel("Lap Number")
-    ax.set_title("Overtakes Timeline")
-    ax.legend()
-    st.pyplot(fig)
+    """Visualizes overtakes over the course of the race."""
+    fig = px.scatter(
+        df,
+        x="lap_number",
+        y="driver_name",
+        text="overtaken_driver",
+        title="📈 Overtakes Timeline",
+        color="drs_used",
+        labels={"lap_number": "Lap", "driver_name": "Overtaking Driver"},
+    )
+    fig.update_traces(textposition="top center", marker=dict(size=10))
+    st.plotly_chart(fig, use_container_width=True)
 
-def plot_sector_based_overtakes(df):
-    """
-    Shows overtakes per sector to analyze track sections where most overtakes happen.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.countplot(ax=ax, x=df["sector"], hue=df["overtaking_driver"])
-    ax.set_xlabel("Sector")
-    ax.set_ylabel("Number of Overtakes")
-    ax.set_title("Overtakes Per Sector")
-    ax.legend(title="Driver")
-    st.pyplot(fig)
+def plot_overtakes_by_sector(df):
+    """Shows where most overtakes happen on the track."""
+    fig = px.histogram(
+        df,
+        x="sector",
+        color="driver_name",
+        title="🔍 Overtakes Per Sector",
+        labels={"sector": "Track Sector"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-def plot_drs_overtakes(df):
-    """
-    Compares overtakes with and without DRS to measure its impact.
-    """
+def plot_drs_impact(df):
+    """Analyzes the impact of DRS on overtakes."""
     drs_counts = df["drs_used"].value_counts()
-    fig, ax = plt.subplots(figsize=(6, 6))
-    ax.pie(drs_counts, labels=["With DRS", "Without DRS"], autopct="%1.1f%%", colors=["red", "blue"])
-    ax.set_title("DRS Impact on Overtakes")
-    st.pyplot(fig)
+    fig = px.pie(
+        names=["With DRS", "Without DRS"],
+        values=drs_counts,
+        title="💨 DRS Impact on Overtakes",
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-# Fetch session data
-with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM overtakes")
-
-session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-selected_session = st.selectbox("Select Session", session_list if session_list else [0])
-
-df = get_overtakes_data(selected_session)
-
-if not df.empty:
-    plot_overtakes_distribution(df)
-    plot_overtakes_timeline(df)
-    plot_sector_based_overtakes(df)
-    plot_drs_overtakes(df)
-    
-    st.write("### Overtakes Data")
-    st.dataframe(df)
-else:
-    st.warning("No overtakes data available for this session.")
+overtakes_analysis()

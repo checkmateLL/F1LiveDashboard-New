@@ -1,100 +1,112 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-from frontend.components.race_visuals import (
-    show_race_pace_analysis, 
-    show_tire_strategy_analysis, 
-    show_driver_performance,
-    show_overtake_analysis,
-    show_telemetry_analysis
-)
 from backend.data_service import F1DataService
 from backend.error_handling import DatabaseError
 
 # Initialize data service
 data_service = F1DataService()
 
-def race_analysis():
-    """Race Analysis Dashboard."""
-    st.title("📊 Race Analysis")
+def race_start_analysis():
+    """Race Start Performance & Position Gains."""
+    st.title("🚦 Race Start Analysis")
 
     try:
-        # Store selected year in session state
+        # Fetch available years
         available_years = data_service.get_available_years()
-        default_year = st.session_state.get("selected_year", available_years[0])
-        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(default_year))
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
         st.session_state["selected_year"] = selected_year
 
-        # Fetch all events for the selected season
-        events_df = data_service.get_events(selected_year)
-        if events_df.empty:
-            st.warning("No events available for this season.")
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
             return
 
-        # Default to first available event
-        event_options = {event["event_name"]: event["id"] for event in events_df}
-        default_event_id = st.session_state.get("selected_event", next(iter(event_options.values())))
-        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(default_event_id))
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
 
-        # Get race sessions for the selected event
-        sessions_df = data_service.get_race_sessions(event_id)
-        if sessions_df.empty:
-            st.warning("No race sessions available for this event.")
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
             return
 
-        # Default to first race session
-        session_options = {session["name"]: session["id"] for session in sessions_df}
-        default_session_id = st.session_state.get("selected_session", next(iter(session_options.values())))
-        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(default_session_id))
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
         session_id = session_options[selected_session]
         st.session_state["selected_session"] = session_id
 
-        # Get lap times data
-        laps_df = data_service.get_lap_times(session_id)
-        if laps_df.empty:
-            st.warning("No lap data available for this session.")
+        # Fetch lap 1 data
+        lap1_df = data_service.get_lap_times(session_id, lap_number=1)
+        if lap1_df.empty:
+            st.warning("No data available for lap 1.")
             return
 
-        # Convert lap times to seconds
-        laps_df["lap_time_sec"] = laps_df["lap_time"].apply(convert_time_to_seconds)
+        # Fetch grid positions
+        results_df = data_service.get_race_results(session_id)
+        if results_df.empty:
+            st.warning("No race result data available.")
+            return
 
-        # Create tabs for different analysis
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
-            "Race Pace", "Tire Strategy", "Driver Performance", "Overtakes", "Telemetry"
-        ])
+        # Merge grid positions with first-lap positions
+        start_data = results_df[["driver_name", "grid_position", "team_name"]].merge(
+            lap1_df[["driver_name", "position", "lap_time", "sector1_time"]],
+            on="driver_name"
+        )
+
+        # Calculate position gains/losses
+        start_data["Position Change"] = start_data["grid_position"] - start_data["position"]
+
+        # Create visualization tabs
+        tab1, tab2 = st.tabs(["Position Gains", "Reaction Time"])
 
         with tab1:
-            show_race_pace_analysis(laps_df)
+            plot_start_position_changes(start_data)
 
         with tab2:
-            show_tire_strategy_analysis(laps_df)
+            plot_reaction_time_analysis(start_data)
 
-        with tab3:
-            show_driver_performance(laps_df)
-
-        with tab4:
-            show_overtake_analysis(laps_df)
-
-        with tab5:
-            show_telemetry_analysis(session_id)
+        # Display dataset
+        st.subheader("📊 Race Start Performance Data")
+        st.dataframe(start_data, use_container_width=True)
 
     except DatabaseError as e:
         st.error(f"⚠️ Database error: {e}")
     except Exception as e:
         st.error(f"⚠️ Unexpected error: {e}")
 
-def convert_time_to_seconds(time_str):
-    """Convert time format (e.g., '0 days 00:01:30.123456') to total seconds."""
-    if pd.isna(time_str) or time_str is None:
-        return None
-    try:
-        parts = time_str.split(" ")
-        time_part = parts[-1]
-        h, m, s = map(float, time_part.split(":"))
-        return h * 3600 + m * 60 + s
-    except Exception:
-        return None
+def plot_start_position_changes(df):
+    """Visualizes position gains/losses at the start."""
+    fig = px.bar(
+        df,
+        x="driver_name",
+        y="Position Change",
+        color="team_name",
+        title="📈 Position Gains at Race Start",
+        text="Position Change",
+    )
+    fig.update_layout(yaxis_title="Position Change (Higher is Better)")
+    st.plotly_chart(fig, use_container_width=True)
 
-race_analysis()
+def plot_reaction_time_analysis(df):
+    """Analyzes reaction times using sector 1 times."""
+    if "sector1_time" not in df.columns:
+        st.info("No reaction time data available.")
+        return
+
+    fig = px.bar(
+        df,
+        x="driver_name",
+        y="sector1_time",
+        color="team_name",
+        title="⏱️ Reaction Time (Sector 1 Performance)",
+        text="sector1_time",
+    )
+    fig.update_layout(yaxis_title="Sector 1 Time (Lower is Better)")
+    st.plotly_chart(fig, use_container_width=True)
+
+race_start_analysis()

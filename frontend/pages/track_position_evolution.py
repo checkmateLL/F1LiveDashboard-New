@@ -1,59 +1,77 @@
-# frontend/pages/track_position_evolution.py
-
+import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
-from backend.db_connection import get_db_handler
+import plotly.express as px
 
-st.set_page_config(layout="wide")
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
 
-st.title("Track Position Evolution with Heatmap (Optimized Query Execution & ID Handling)")
+# Initialize data service
+data_service = F1DataService()
 
-def get_track_position_data(session_id):
-    """
-    Retrieves telemetry data for track position heatmap visualization.
-    """
-    session_id = int(session_id)  # Ensure session_id is integer
-    query = """
-        SELECT telemetry.x, telemetry.y, telemetry.speed, drivers.driver_name
-        FROM telemetry
-        JOIN drivers ON telemetry.driver_id = drivers.driver_id
-        WHERE telemetry.session_id = ?
-        ORDER BY drivers.driver_name
-    """
-    
-    with get_db_handler() as db:
-        df = db.execute_query(query, (session_id,))
-    
-    return df
+def track_position_evolution():
+    """Track Position Evolution & Heatmap Visualization."""
+    st.title("📍 Track Position Evolution")
+
+    try:
+        # Fetch available years
+        available_years = data_service.get_available_years()
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        st.session_state["selected_year"] = selected_year
+
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
+            return
+
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
+            return
+
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Fetch telemetry data
+        telemetry_df = data_service.get_telemetry(session_id)
+        if telemetry_df.empty:
+            st.warning("No telemetry data available for this session.")
+            return
+
+        # Create heatmap
+        plot_track_position_heatmap(telemetry_df)
+
+        # Display dataset
+        st.subheader("📊 Track Position Data")
+        st.dataframe(telemetry_df, use_container_width=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Unexpected error: {e}")
 
 def plot_track_position_heatmap(df):
-    """
-    Generates a heatmap of driver positions on track.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    heatmap, xedges, yedges = np.histogram2d(df["x"], df["y"], bins=(50, 50), weights=df["speed"])
-    ax.imshow(heatmap.T, origin="lower", cmap="coolwarm", aspect="auto")
-    ax.set_xlabel("X Position")
-    ax.set_ylabel("Y Position")
-    ax.set_title("Track Position Heatmap (Speed-Weighted)")
-    st.pyplot(fig)
+    """Generates an interactive heatmap of driver positions on track."""
+    fig = px.density_heatmap(
+        df,
+        x="x",
+        y="y",
+        z="speed",
+        nbinsx=50,
+        nbinsy=50,
+        color_continuous_scale="thermal",
+        title="🔥 Track Position Heatmap (Speed-Weighted)"
+    )
+    fig.update_layout(xaxis_title="X Position", yaxis_title="Y Position")
+    st.plotly_chart(fig, use_container_width=True)
 
-# Fetch session data
-with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM telemetry")
-
-session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-selected_session = st.selectbox("Select Session", session_list if session_list else [0])
-
-df = get_track_position_data(selected_session)
-
-if not df.empty:
-    plot_track_position_heatmap(df)
-    
-    st.write("### Track Position Data")
-    st.dataframe(df)
-else:
-    st.warning("No track position data available for this session.")
+track_position_evolution()

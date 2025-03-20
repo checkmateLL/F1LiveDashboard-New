@@ -1,81 +1,109 @@
-# frontend/pages/fuel_load_analysis.py
-
+import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
-from backend.db_connection import get_db_handler
+import plotly.express as px
 
-st.set_page_config(layout="wide")
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
 
-st.title("Fuel Load Impact Analysis (Optimized Query Execution & ID Handling)")
+# Initialize data service
+data_service = F1DataService()
 
-def get_fuel_load_data(session_id):
-    """
-    Retrieves fuel load data and lap performance impact.
-    """
-    session_id = int(session_id)  # Ensure session_id is integer
-    query = """
-        SELECT laps.lap_number, drivers.driver_name, laps.fuel_load, laps.lap_time
-        FROM laps
-        JOIN drivers ON laps.driver_id = drivers.driver_id
-        WHERE laps.session_id = ?
-        ORDER BY laps.lap_number, drivers.driver_name
-    """
-    
-    with get_db_handler() as db:
-        df = db.execute_query(query, (session_id,))
-    
-    return df
+def fuel_load_analysis():
+    """Fuel Load & Degradation Impact Analysis."""
+    st.title("⛽ Fuel Load Analysis & Performance Impact")
 
-def apply_fuel_correction(df):
-    """
-    Applies a fuel correction model to normalize lap times.
-    """
+    try:
+        # Fetch available years
+        available_years = data_service.get_available_years()
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        st.session_state["selected_year"] = selected_year
+
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
+            return
+
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
+            return
+
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Fetch lap data
+        laps_df = data_service.get_lap_times(session_id)
+        if laps_df.empty:
+            st.warning("No lap data available.")
+            return
+
+        # Estimate fuel load based on lap number
+        laps_df["estimated_fuel_load"] = estimate_fuel_load(laps_df)
+
+        # Normalize lap times based on fuel load
+        laps_df["corrected_lap_time"] = normalize_lap_time(laps_df)
+
+        # Create visualization tabs
+        tab1, tab2 = st.tabs(["Fuel Load vs Lap Time", "Actual vs Corrected Lap Time"])
+
+        with tab1:
+            plot_fuel_load_vs_lap_time(laps_df)
+
+        with tab2:
+            plot_actual_vs_corrected_lap_time(laps_df)
+
+        # Display dataset
+        st.subheader("📊 Fuel Load Analysis Data")
+        st.dataframe(laps_df, use_container_width=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Unexpected error: {e}")
+
+def estimate_fuel_load(df):
+    """Estimates fuel load dynamically based on lap number and degradation trends."""
+    df["estimated_fuel_load"] = np.exp(-df["lap_number"] / 30) * 110  # 110kg start estimate
+    return df["estimated_fuel_load"]
+
+def normalize_lap_time(df):
+    """Applies a fuel correction model to normalize lap times."""
     fuel_correction_factor = 0.035  # Estimated lap time loss per kg of fuel
-    df["corrected_lap_time"] = df["lap_time"] - (df["fuel_load"] * fuel_correction_factor)
-    return df
+    df["corrected_lap_time"] = df["lap_time"] - (df["estimated_fuel_load"] * fuel_correction_factor)
+    return df["corrected_lap_time"]
 
 def plot_fuel_load_vs_lap_time(df):
-    """
-    Visualizes the effect of fuel load on lap times.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(ax=ax, x="fuel_load", y="lap_time", hue="driver_name", data=df, alpha=0.6)
-    ax.set_xlabel("Fuel Load (kg)")
-    ax.set_ylabel("Lap Time (s)")
-    ax.set_title("Fuel Load vs. Lap Time")
-    st.pyplot(fig)
+    """Visualizes the effect of fuel load on lap times."""
+    fig = px.scatter(
+        df,
+        x="estimated_fuel_load",
+        y="lap_time",
+        color="driver_name",
+        title="⛽ Fuel Load vs. Lap Time",
+        labels={"estimated_fuel_load": "Fuel Load (kg)", "lap_time": "Lap Time (s)"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 def plot_actual_vs_corrected_lap_time(df):
-    """
-    Compares actual lap times vs. fuel-corrected lap times.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.lineplot(ax=ax, x="lap_number", y="lap_time", hue="driver_name", data=df, label="Actual Lap Time")
-    sns.lineplot(ax=ax, x="lap_number", y="corrected_lap_time", hue="driver_name", data=df, linestyle="dashed", label="Fuel-Corrected Lap Time")
-    ax.set_xlabel("Lap Number")
-    ax.set_ylabel("Lap Time (s)")
-    ax.set_title("Actual vs. Fuel-Corrected Lap Times")
-    ax.legend()
-    st.pyplot(fig)
+    """Compares actual lap times vs. fuel-corrected lap times."""
+    fig = px.line(
+        df,
+        x="lap_number",
+        y=["lap_time", "corrected_lap_time"],
+        color="driver_name",
+        title="📈 Actual vs. Fuel-Corrected Lap Time",
+        labels={"lap_number": "Lap Number", "lap_time": "Lap Time (s)"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-# Fetch session data
-with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM laps")
-
-session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-selected_session = st.selectbox("Select Session", session_list if session_list else [0])
-
-df = get_fuel_load_data(selected_session)
-
-if not df.empty:
-    df = apply_fuel_correction(df)
-    plot_fuel_load_vs_lap_time(df)
-    plot_actual_vs_corrected_lap_time(df)
-    
-    st.write("### Fuel Load Data")
-    st.dataframe(df)
-else:
-    st.warning("No fuel load data available for this session.")
+fuel_load_analysis()

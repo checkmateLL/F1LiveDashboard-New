@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 import numpy as np
 
-from backend.db_connection import execute_query
+from backend.db_connection import DatabaseConnectionHandler
 from backend.config import SQLITE_DB_PATH
 from backend.error_handling import DatabaseError, ResourceNotFoundError, handle_exception
 from backend.weather import get_track_weather as fetch_weather
@@ -32,7 +32,8 @@ class F1DataService:
         """Fetches distinct years from the events table."""
         query = "SELECT DISTINCT year FROM events ORDER BY year DESC"
         try:
-            return [row["year"] for row in execute_query(query)]
+            with DatabaseConnectionHandler() as db:
+                return [row["year"] for row in db.execute_query(query)]
         except DatabaseError as e:
             logger.error(f"Error retrieving available years: {e}")
             raise
@@ -48,7 +49,8 @@ class F1DataService:
             ORDER BY round_number
         """
         try:
-            return execute_query(query, (year,))
+            with DatabaseConnectionHandler() as db:
+                return db.execute_query(query, (year,))
         except DatabaseError as e:
             logger.error(f"Error retrieving events for year {year}: {e}")
             raise
@@ -59,7 +61,8 @@ class F1DataService:
         round_number = self._convert_id(round_number)
         query = "SELECT * FROM events WHERE year = ? AND round_number = ?"
         try:
-            result = execute_query(query, (year, round_number))
+            with DatabaseConnectionHandler() as db:
+                result = db.execute_query(query, (year, round_number))
             if not result:
                 raise ResourceNotFoundError("Event", f"year={year}, round={round_number}")
             return result[0]
@@ -77,7 +80,8 @@ class F1DataService:
             ORDER BY date ASC
         """
         try:
-            return execute_query(query, (event_id,))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, (event_id,))
         except DatabaseError as e:
             logger.error(f"Error retrieving sessions for event {event_id}: {e}")
             raise
@@ -92,7 +96,8 @@ class F1DataService:
             ORDER BY name
         """
         try:
-            return execute_query(query, (year,))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, (year,))
         except DatabaseError as e:
             logger.error(f"Error retrieving teams for year {year}: {e}")
             raise
@@ -114,7 +119,8 @@ class F1DataService:
 
         query += " ORDER BY team_id, driver_number"
         try:
-            return execute_query(query, tuple(params))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, tuple(params))
         except DatabaseError as e:
             logger.error(f"Error retrieving drivers for year {year}, team {team_id}: {e}")
             raise
@@ -135,7 +141,8 @@ class F1DataService:
             ORDER BY total_points DESC
         """
         try:
-            return execute_query(query, (year,))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, (year,))
         except DatabaseError as e:
             logger.error(f"Error retrieving driver standings for year {year}: {e}")
             raise
@@ -156,7 +163,8 @@ class F1DataService:
             ORDER BY total_points DESC
         """
         try:
-            return execute_query(query, (year,))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, (year,))
         except DatabaseError as e:
             logger.error(f"Error retrieving constructor standings for year {year}: {e}")
             raise
@@ -175,7 +183,8 @@ class F1DataService:
             ORDER BY r.position
         """
         try:
-            return execute_query(query, (session_id,))
+            with DatabaseConnectionHandler() as db: 
+                return db.execute_query(query, (session_id,))
         except DatabaseError as e:
             logger.error(f"Error retrieving race results for session {session_id}: {e}")
             raise
@@ -224,7 +233,8 @@ class F1DataService:
             ORDER BY time ASC
         """
         try:
-            result = execute_query(query, (session_id,))
+            with DatabaseConnectionHandler() as db: 
+                result = db.execute_query(query, (session_id,))
             if not result:
                 return {"error": "No weather data available"}
             return result

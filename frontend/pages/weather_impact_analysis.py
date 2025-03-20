@@ -1,103 +1,104 @@
-# frontend/pages/weather_impact_analysis.py
-
-import pandas as pd
-import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
-from backend.db_connection import get_db_handler
+import pandas as pd
+import plotly.express as px
 
-st.set_page_config(layout="wide")
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
 
-st.title("Weather Impact on Tire Performance and Race Strategy")
+# Initialize data service
+data_service = F1DataService()
 
-def get_weather_impact_data(session_id):
-    """
-    Retrieves weather conditions and their impact on lap times.
-    """
-    session_id = int(session_id)  # Ensure session_id is integer
-    query = """
-        SELECT laps.lap_number, drivers.driver_name, laps.lap_time, 
-               weather.track_temp, weather.air_temp, weather.humidity, weather.wind_speed
-        FROM laps
-        JOIN drivers ON laps.driver_id = drivers.driver_id
-        JOIN weather ON laps.session_id = weather.session_id
-        WHERE laps.session_id = ?
-        ORDER BY laps.lap_number, drivers.driver_name
-    """
-    
-    with get_db_handler() as db:
-        df = db.execute_query(query, (session_id,))
-    
-    return df
+def weather_impact_analysis():
+    """Weather Impact on Tire Performance & Race Strategy."""
+    st.title("🌦️ Weather Impact Analysis")
 
-def plot_weather_vs_lap_time(df, weather_metric, label):
-    """
-    Visualizes the relationship between a specific weather metric and lap time.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.scatterplot(ax=ax, x=df[weather_metric], y=df["lap_time"], hue=df["driver_name"], alpha=0.6)
-    ax.set_xlabel(label)
-    ax.set_ylabel("Lap Time (s)")
-    ax.set_title(f"{label} vs. Lap Time")
-    st.pyplot(fig)
+    try:
+        # Fetch available years
+        available_years = data_service.get_available_years()
+        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        st.session_state["selected_year"] = selected_year
+
+        # Fetch events
+        events = data_service.get_events(selected_year)
+        if not events:
+            st.warning("No events available.")
+            return
+
+        event_options = {event["event_name"]: event["id"] for event in events}
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Fetch race sessions
+        sessions = data_service.get_race_sessions(event_id)
+        if not sessions:
+            st.warning("No race sessions available.")
+            return
+
+        session_options = {session["name"]: session["id"] for session in sessions}
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Fetch weather impact data
+        weather_df = data_service.get_weather_impact_data(session_id)
+        if weather_df.empty:
+            st.warning("No weather impact data available.")
+            return
+
+        # Create visualization tabs
+        tab1, tab2, tab3 = st.tabs(["Weather vs Lap Time", "Weather Trends", "Tire Performance"])
+
+        with tab1:
+            plot_weather_vs_lap_time(weather_df)
+
+        with tab2:
+            plot_weather_trends(weather_df)
+
+        with tab3:
+            plot_tire_performance_by_weather(weather_df)
+
+        # Display dataset
+        st.subheader("📊 Weather Impact Data")
+        st.dataframe(weather_df, use_container_width=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Unexpected error: {e}")
+
+def plot_weather_vs_lap_time(df):
+    """Visualizes the relationship between weather conditions and lap time."""
+    fig = px.scatter_matrix(
+        df,
+        dimensions=["track_temp", "air_temp", "humidity", "wind_speed"],
+        color="lap_time",
+        title="🌡️ Weather Impact on Lap Times",
+        labels={"lap_time": "Lap Time (s)"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 def plot_weather_trends(df):
-    """
-    Shows how weather conditions changed over the race.
-    """
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    sns.lineplot(ax=axes[0, 0], x="lap_number", y="track_temp", data=df)
-    axes[0, 0].set_title("Track Temperature Over Laps")
-    
-    sns.lineplot(ax=axes[0, 1], x="lap_number", y="air_temp", data=df)
-    axes[0, 1].set_title("Air Temperature Over Laps")
-    
-    sns.lineplot(ax=axes[1, 0], x="lap_number", y="humidity", data=df)
-    axes[1, 0].set_title("Humidity Over Laps")
-    
-    sns.lineplot(ax=axes[1, 1], x="lap_number", y="wind_speed", data=df)
-    axes[1, 1].set_title("Wind Speed Over Laps")
-    
-    st.pyplot(fig)
+    """Shows how weather conditions changed over the race."""
+    fig = px.line(
+        df,
+        x="lap_number",
+        y=["track_temp", "air_temp", "humidity", "wind_speed"],
+        title="📊 Weather Conditions Over Laps",
+        labels={"lap_number": "Lap Number"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 def plot_tire_performance_by_weather(df):
-    """
-    Compares lap times by tire compound under different weather conditions.
-    """
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(ax=ax, x="compound", y="lap_time", hue=df["track_temp"].round(-1), data=df)
-    ax.set_xlabel("Tire Compound")
-    ax.set_ylabel("Lap Time (s)")
-    ax.set_title("Tire Performance vs. Track Temperature")
-    st.pyplot(fig)
+    """Compares lap times by tire compound under different weather conditions."""
+    fig = px.box(
+        df,
+        x="compound",
+        y="lap_time",
+        color="track_temp",
+        title="🏎️ Tire Performance vs Track Temperature",
+        labels={"lap_time": "Lap Time (s)", "compound": "Tire Compound"},
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-def suggest_optimal_tires(df):
-    """
-    Suggests best tire strategy based on weather impact.
-    """
-    avg_times = df.groupby("compound")["lap_time"].mean().sort_values()
-    best_tire = avg_times.idxmin()
-    st.subheader("Optimal Tire Choice Based on Weather Conditions")
-    st.write(f"🚀 Recommended Tire: **{best_tire}** for current weather conditions.")
-    
-# Fetch session data
-with get_db_handler() as db:
-    sessions = db.execute_query("SELECT DISTINCT session_id FROM weather")
-
-session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-selected_session = st.selectbox("Select Session", session_list if session_list else [0])
-
-df = get_weather_impact_data(selected_session)
-
-if not df.empty:
-    plot_weather_vs_lap_time(df, "track_temp", "Track Temperature (°C)")
-    plot_weather_vs_lap_time(df, "air_temp", "Air Temperature (°C)")
-    plot_weather_vs_lap_time(df, "humidity", "Humidity (%)")
-    plot_weather_vs_lap_time(df, "wind_speed", "Wind Speed (km/h)")
-    plot_weather_trends(df)
-    
-    st.write("### Weather Impact Data")
-    st.dataframe(df)
-else:
-    st.warning("No weather data available for this session.")
+weather_impact_analysis()
