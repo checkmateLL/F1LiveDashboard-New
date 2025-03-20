@@ -26,7 +26,8 @@ try:
     from frontend.pages.performance import performance
     from frontend.pages.race_analysis import race_analysis
     from frontend.pages.race_replay import race_replay
-    from frontend.pages.event_schedule import event_schedule
+    from frontend.pages import event_schedule as event_schedule_module
+    event_schedule = event_schedule_module.event_schedule
 except ImportError as e:
     st.error(f"⚠️ Page import failed: {e}")
 

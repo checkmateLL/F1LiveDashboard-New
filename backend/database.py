@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Database file path
-DB_PATH = os.getenv("SQLITE_DB_PATH", "f1_data.db")
+DB_PATH = os.getenv("SQLITE_DB_PATH", "f1_data_full_2025.db")
 
 # Connection pooling (singleton instance)
 class SQLiteConnectionPool:

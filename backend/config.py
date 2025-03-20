@@ -9,6 +9,17 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Get database path, handling both absolute and relative paths
+db_path = os.getenv("SQLITE_DB_PATH")
+if db_path and not os.path.isabs(db_path):
+    SQLITE_DB_PATH = os.path.join(BASE_DIR, db_path)
+else:
+    SQLITE_DB_PATH = db_path
+
+print(f"Using database at: {SQLITE_DB_PATH}")
+
 # Required environment variables
 REQUIRED_ENV_VARS = [
     "SQLITE_DB_PATH",

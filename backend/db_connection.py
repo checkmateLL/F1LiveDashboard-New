@@ -25,6 +25,14 @@ class DatabaseConnectionHandler:
     def __enter__(self):
         """Context manager entry - opens connection"""
         try:
+            logger.info(f"Attempting to connect to database at: {self.db_path}")
+            
+            # Check if file exists
+            import os
+            if not os.path.exists(self.db_path):
+                logger.error(f"Database file does not exist: {self.db_path}")
+                raise DatabaseError(f"Database file not found: {self.db_path}")
+                
             self.conn = sqlite3.connect(self.db_path)
             
             # Enable row factory for named column access
@@ -33,7 +41,7 @@ class DatabaseConnectionHandler:
             # Create custom converter for IDs to ensure they're integers
             sqlite3.register_converter("ID", lambda v: int(v.decode()))
             
-            logger.info(f"Connected to SQLite database: {self.db_path}")
+            logger.info(f"Successfully connected to SQLite database: {self.db_path}")
             return self
         except sqlite3.Error as e:
             error_msg = f"Error connecting to database: {str(e)}"
@@ -149,24 +157,23 @@ class DatabaseConnectionHandler:
             logger.error(f"Database error retrieving lap times for session {session_id}: {e}")
             raise DatabaseError("Error retrieving lap time data")
     
-    def execute_query(query: str, params: tuple = ()):
+    def execute_query(self, query, params=()):
         """
         Executes a given SQL query with optional parameters.
-        Uses connection pooling to improve performance.
-
+        
         :param query: SQL query string
-        :param params: Tuple of query parameters
+        :param params: Tuple of query parameters (optional)
         :return: Query result as a list of dictionaries
         """
         try:
-            with get_db_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(query, params)
-                conn.commit()
-                return cursor.fetchall()
+            cursor = self.conn.cursor()
+            cursor.execute(query, params)
+            result = [dict(row) for row in cursor.fetchall()]
+            return result
         except sqlite3.Error as e:
-            logger.error(f"Database query execution error: {e}")
-            raise DatabaseError("Failed to execute database query")
+            error_msg = f"Database query execution error: {e}"
+            logger.error(error_msg)
+            raise DatabaseError(error_msg)
 
 # Helper function to initialize the database handler
 def get_db_handler():

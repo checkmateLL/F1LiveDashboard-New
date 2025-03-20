@@ -53,3 +53,40 @@ def show_points_distribution(results_df):
     # Create pie chart
     fig = create_pie_chart(team_points, "points", "team_name", "Points Distribution by Team")
     st.plotly_chart(fig, use_container_width=True)
+
+# Add this to frontend/components/race_visuals.py
+def show_race_summary(results_df):
+    """Display a comprehensive race summary with key statistics."""
+    if results_df.empty:
+        return
+    
+    st.subheader("Race Summary")
+    
+    # Create 4 columns for key stats
+    cols = st.columns(4)
+    
+    # Stats to show
+    if 'position' in results_df.columns and len(results_df) > 0:
+        winner = results_df[results_df['position'] == 1]
+        if len(winner) > 0:
+            cols[0].metric("Winner", winner['driver_name'].iloc[0])
+    
+    if 'grid_position' in results_df.columns and 'position' in results_df.columns:
+        # Best recovery
+        results_df['position_change'] = results_df['grid_position'] - results_df['position']
+        best_recovery = results_df[results_df['position_change'] > 0].sort_values('position_change', ascending=False)
+        if len(best_recovery) > 0:
+            cols[1].metric("Best Recovery", 
+                         f"{best_recovery['driver_name'].iloc[0]} (+{best_recovery['position_change'].iloc[0]})")
+    
+    # Number of finishers
+    if 'status' in results_df.columns:
+        finishers = results_df[results_df['status'] == 'Finished'].shape[0]
+        cols[2].metric("Finishers", f"{finishers}/{len(results_df)}")
+    
+    # Points leader (if points exist)
+    if 'points' in results_df.columns:
+        points_leader = results_df.sort_values('points', ascending=False)
+        if len(points_leader) > 0 and points_leader['points'].iloc[0] > 0:
+            cols[3].metric("Most Points", 
+                         f"{points_leader['driver_name'].iloc[0]} ({points_leader['points'].iloc[0]})")
