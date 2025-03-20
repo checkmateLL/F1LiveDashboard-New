@@ -1,12 +1,18 @@
 import logging
+import os
 from typing import Dict, Any, Optional, Union
 from fastapi import HTTPException, status
 import sqlite3
 
 # Configure logger
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_FILE = os.getenv("LOG_FILE", "f1dashboard.log")
+
 logger = logging.getLogger("f1dashboard")
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler("f1dashboard.log")
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
+
+# Log Rotation (prevents excessive file size)
+handler = logging.FileHandler(LOG_FILE, mode="a")
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -76,20 +82,26 @@ class ExternalServiceError(F1DashboardError):
             details=details
         )
         logger.error(f"External service error: {full_message}")
-        
+
 # Utility functions
 def log_and_raise(error: F1DashboardError) -> None:
     """Log the error and raise it for the exception handler."""
-    # Additional logging can be done here if needed
     raise error
 
 def handle_exception(func_name: str, e: Exception) -> F1DashboardError:
     """Convert standard exceptions to F1DashboardError with logging."""
     if isinstance(e, sqlite3.Error):
         return DatabaseError(f"SQLite error in {func_name}: {str(e)}")
+    elif isinstance(e, HTTPException):
+        return F1DashboardError(e.detail, status_code=e.status_code)
     elif isinstance(e, F1DashboardError):
         return e
     else:
         message = f"Unexpected error in {func_name}: {str(e)}"
         logger.error(message, exc_info=True)
         return F1DashboardError(message)
+
+# Context-Aware Logging
+def log_request_info(request):
+    """Logs request details (useful for FastAPI logging)."""
+    logger.info(f"Request: {request.method} {request.url}")
