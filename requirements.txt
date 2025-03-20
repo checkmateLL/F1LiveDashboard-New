@@ -1,3 +1,4 @@
+# Core dependencies
 fastapi
 uvicorn[standard]
 streamlit
@@ -5,9 +6,11 @@ redis
 fastf1
 pandas
 numpy
-scikit-learn
-torch
 pydantic
 python-dotenv
 tqdm
 requests
+
+# Optional ML dependencies (removed since they are not used)
+# scikit-learn
+# torch

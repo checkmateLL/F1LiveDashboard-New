@@ -9,7 +9,7 @@ from backend.models import (
     TeamStandingModel, ResultModel, WeatherModel
 )
 from backend.data_service import F1DataService
-from backend.error_handling import ValidationError, ResourceNotFoundError, DatabaseError
+from backend.error_handling import ValidationError, ResourceNotFoundError, DatabaseError, ExternalServiceError
 from backend.weather import get_track_weather, get_weather_for_location
 
 # Get logger
@@ -234,3 +234,42 @@ async def get_telemetry(
     except Exception as e:
         logger.error(f"Error retrieving telemetry for session ID {session_id}, driver ID {driver_id}, lap number {lap_number}: {e}")
         raise DatabaseError(f"Failed to retrieve telemetry data: {str(e)}")
+    
+@router.get("/weather/current", response_model=dict)
+async def fetch_current_weather():
+    """
+    Get real-time weather data for the default track location.
+    Uses caching to avoid excessive API calls.
+    """
+    try:
+        return get_track_weather()
+    except ExternalServiceError as e:
+        logger.error(f"External weather service error: {e}")
+        raise HTTPException(status_code=502, detail=e.to_dict())
+    except DatabaseError as e:
+        logger.error(f"Database error while fetching weather: {e}")
+        raise HTTPException(status_code=500, detail=e.to_dict())
+    except Exception as e:
+        logger.error(f"Unexpected error fetching weather: {e}")
+        raise HTTPException(status_code=500, detail={"error": "Internal server error"})
+
+# ✅ New endpoint: Fetch weather for a specific event & session time
+@router.get("/weather/{event_name}/{session_time}", response_model=dict)
+async def fetch_weather_for_event(event_name: str, session_time: str):
+    """
+    Fetch weather data for a specific race event and session time.
+    :param event_name: Name of the event (e.g., "Monza GP").
+    :param session_time: Timestamp in ISO format (e.g., "2025-06-15T14:00:00Z").
+    :return: Weather data.
+    """
+    try:
+        return get_weather_for_location(event_name, session_time)
+    except ValidationError as e:
+        logger.warning(f"Validation error: {e}")
+        raise HTTPException(status_code=400, detail=e.to_dict())
+    except ExternalServiceError as e:
+        logger.error(f"Weather API error: {e}")
+        raise HTTPException(status_code=502, detail=e.to_dict())
+    except Exception as e:
+        logger.error(f"Unexpected error fetching event weather: {e}")
+        raise HTTPException(status_code=500, detail={"error": "Internal server error"})    

@@ -1,0 +1,21 @@
+2025-03-19 15:38:57,986 - f1dashboard - ERROR - Database error: Database error in execute_query: Execution failed on sql 'SELECT DISTINCT session_id FROM overtakes': no such table: overtakes
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: overtakes
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 187, in execute_query
+    df = pd.read_sql_query(query, self.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT DISTINCT session_id FROM overtakes': no such table: overtakes

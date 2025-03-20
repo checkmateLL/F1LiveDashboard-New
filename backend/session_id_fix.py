@@ -15,7 +15,7 @@ def get_session_data(conn, session_id):
     """
     try:
         # Convert session_id to integer if it's not already
-        session_id_int = int(session_id)
+        session_id_int = int(session_id) if isinstance(session_id, (np.integer, str)) else session_id
         
         # Query the database with the properly converted ID
         query = """
@@ -31,8 +31,8 @@ def get_session_data(conn, session_id):
             return None
         
         return df.iloc[0].to_dict()
+    
     except (ValueError, TypeError) as e:
-        # Handle conversion errors
         print(f"Error converting session_id: {e}")
         return None
     except Exception as e:
@@ -53,8 +53,8 @@ def get_lap_times_with_id_fix(conn, session_id, driver_id=None):
     """
     try:
         # Convert IDs to integers
-        session_id_int = int(session_id)
-        driver_id_int = int(driver_id) if driver_id is not None else None
+        session_id_int = int(session_id) if isinstance(session_id, (np.integer, str)) else session_id
+        driver_id_int = int(driver_id) if driver_id is not None and isinstance(driver_id, (np.integer, str)) else None
         
         # Build the query
         query = """
@@ -69,15 +69,11 @@ def get_lap_times_with_id_fix(conn, session_id, driver_id=None):
             WHERE l.session_id = ?
         """
         
-        params = [session_id_int]
-        
+        params = [session_id_int]        
         if driver_id_int is not None:
             query += " AND l.driver_id = ?"
             params.append(driver_id_int)
         
-        query += " ORDER BY l.lap_number, l.position"
-        
-        # Execute the query
         df = pd.read_sql_query(query, conn, params=params)
         return df
     
@@ -131,28 +127,27 @@ def get_telemetry_with_id_fix(conn, session_id, driver_id, lap_number):
 # Patch function for data_service.py to fix session ID type conversion
 def patch_data_service():
     """
-    Apply monkey patch to fix session ID conversion issues in the data service.
-    This should be called at application startup.
+    Patches the F1DataService methods to ensure session_id consistency.
     """
-    from backend.data_service import F1DataService
-    
-    # Original method
-    original_get_sessions = F1DataService.get_sessions
-    
-    # Patched method with proper ID conversion
-    def patched_get_sessions(self, event_id):
-        """Patched method to ensure event_id is properly converted to int"""
-        try:
-            event_id_int = int(event_id)
-            return original_get_sessions(self, event_id_int)
-        except (ValueError, TypeError):
-            print(f"Error converting event_id: {event_id}")
-            return []
-    
-    # Apply the patch
-    F1DataService.get_sessions = patched_get_sessions
-    
-    # Patch other methods with similar issues
-    # ... (additional patches as needed)
-    
-    print("Data service patched for ID type conversion")
+    import backend.data_service as ds
+
+    original_get_sessions = ds.F1DataService.get_sessions
+    original_get_race_results = ds.F1DataService.get_race_results
+    original_get_lap_times = ds.F1DataService.get_lap_times
+
+    def get_sessions_fixed(self, event_id):
+        event_id = int(event_id) if isinstance(event_id, (np.integer, str)) else event_id
+        return original_get_sessions(self, event_id)
+
+    def get_race_results_fixed(self, session_id):
+        session_id = int(session_id) if isinstance(session_id, (np.integer, str)) else session_id
+        return original_get_race_results(self, session_id)
+
+    def get_lap_times_fixed(self, session_id, driver_id=None):
+        session_id = int(session_id) if isinstance(session_id, (np.integer, str)) else session_id
+        driver_id = int(driver_id) if driver_id is not None and isinstance(driver_id, (np.integer, str)) else None
+        return original_get_lap_times(self, session_id, driver_id)
+
+    ds.F1DataService.get_sessions = get_sessions_fixed
+    ds.F1DataService.get_race_results = get_race_results_fixed
+    ds.F1DataService.get_lap_times = get_lap_times_fixed

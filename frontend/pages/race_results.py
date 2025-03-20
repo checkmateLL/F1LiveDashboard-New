@@ -1,190 +1,104 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 from datetime import datetime
 
 from frontend.components.race_visuals import show_race_results, show_position_changes, show_points_distribution, show_race_summary
-from backend.db_connection import get_db_handler
+from backend.data_service import F1DataService
+from backend.error_handling import DatabaseError
+
+# Initialize data service
+data_service = F1DataService()
 
 def race_results():
-    st.title("🏁 Race Results")    
-    
+    """Race Results Dashboard."""
+    st.title("🏁 Race Results")
+
     try:
+        # Get available years
+        years = data_service.get_available_years()
+        default_year = st.session_state.get("selected_year", years[0])
+        year = st.selectbox("Select Season", years, index=years.index(default_year))
+        st.session_state["selected_year"] = year
 
-        with get_db_handler() as db:
+        # Get events for the selected year
+        events_df = data_service.get_events(year)
+        if events_df.empty:
+            st.warning("No events available for this season.")
+            return
 
-            # Get available years from the database
-            years_df = db.execute_query("SELECT DISTINCT year FROM events ORDER BY year DESC")
-            years = years_df['year'].tolist() if not years_df.empty else [2025, 2024, 2023]
-            
-            # Allow user to select a season
-            # Use session state for persistence across page navigations
-            if 'selected_year' in st.session_state:
-                default_year_index = years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in years else 0
+        # Default to the first available event
+        event_options = {event["event_name"]: event["id"] for event in events_df}
+        default_event_id = st.session_state.get("selected_event", next(iter(event_options.values())))
+        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(default_event_id))
+        event_id = event_options[selected_event]
+        st.session_state["selected_event"] = event_id
+
+        # Get race sessions for the selected event
+        sessions_df = data_service.get_race_sessions(event_id)
+        if sessions_df.empty:
+            st.warning("No race sessions available for this event.")
+            return
+
+        # Default to first race session
+        session_options = {session["name"]: session["id"] for session in sessions_df}
+        default_session_id = st.session_state.get("selected_session", next(iter(session_options.values())))
+        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(default_session_id))
+        session_id = session_options[selected_session]
+        st.session_state["selected_session"] = session_id
+
+        # Get race results
+        results_df = data_service.get_race_results(session_id)
+        if results_df.empty:
+            st.warning("No race results available for this session.")
+            return
+
+        # Create tabs for different analyses
+        tab1, tab2, tab3 = st.tabs(["Results Table", "Race Analysis", "Points & Stats"])
+
+        with tab1:
+            show_race_results(results_df)
+            show_race_summary(results_df)
+
+        with tab2:
+            show_position_changes(results_df)
+
+            # Add filters
+            st.subheader("Filters")
+
+            teams = results_df["team_name"].unique().tolist()
+            selected_teams = st.multiselect("Filter by Teams", teams, default=teams)
+
+            filtered_results = results_df[results_df["team_name"].isin(selected_teams)] if selected_teams else results_df
+
+            if not filtered_results.empty:
+                show_position_changes(filtered_results)
             else:
-                default_year_index = 0
-                
-            year = st.selectbox("Select Season", years, index=default_year_index)
-            
-            # Update session state
-            st.session_state['selected_year'] = year
-            
-            # Get all events for the selected season
-            events_df = db.execute_query(
-                """
-                SELECT id, round_number, country, location, official_event_name, 
-                    event_name, event_date, event_format
-                FROM events
-                WHERE year = ?
-                ORDER BY round_number
-                """,                
-                params=(year,)
-            )
-            
-            # Allow user to select an event
-            event_options = events_df['event_name'].tolist() if not events_df.empty else []
-            
-            # If there's a selected event in session state, use it as default
-            if 'selected_event' in st.session_state and st.session_state['selected_event']:
-                # Find the event name for the selected event ID
-                event_id = st.session_state['selected_event']
-                event_name_df = events_df[events_df['id'] == event_id]
-                if not event_name_df.empty:
-                    default_event = event_name_df['event_name'].iloc[0]
-                    if default_event in event_options:
-                        default_event_index = event_options.index(default_event)
-                    else:
-                        default_event_index = 0
-                else:
-                    default_event_index = 0
-            else:
-                default_event_index = 0
-                
-            selected_event_name = st.selectbox("Select Event", event_options, index=default_event_index)
-            
-            if not events_df.empty and selected_event_name:
-                # Get the event ID
-                event_id = events_df[events_df['event_name'] == selected_event_name]['id'].iloc[0]
-                
-                # Update session state
-                st.session_state['selected_event'] = event_id
-                
-                # Get all race sessions for this event
-                sessions_df = db.execute_query(
-                    """
-                    SELECT id, name, date, session_type, total_laps
-                    FROM sessions
-                    WHERE event_id = ? AND (session_type = 'race' OR session_type = 'sprint')
-                    ORDER BY date
-                    """,                    
-                    params=(event_id,)
-                )
-                
-                if not sessions_df.empty:
-                    # Allow user to select a session
-                    session_options = sessions_df['name'].tolist()
-                    
-                    # If there's a selected session in session state, use it as default
-                    if 'selected_session' in st.session_state and st.session_state['selected_session']:
-                        # Find the session name for the selected session ID
-                        session_id = st.session_state['selected_session']
-                        session_name_df = sessions_df[sessions_df['id'] == session_id]
-                        if not session_name_df.empty:
-                            default_session = session_name_df['name'].iloc[0]
-                            if default_session in session_options:
-                                default_session_index = session_options.index(default_session)
-                            else:
-                                default_session_index = 0
-                        else:
-                            default_session_index = 0
-                    else:
-                        default_session_index = 0
-                    
-                    selected_session_name = st.selectbox("Select Session", session_options, index=default_session_index)
-                    
-                    # Get the session ID
-                    session_id = sessions_df[sessions_df['name'] == selected_session_name]['id'].iloc[0]
-                    
-                    # Update session state
-                    st.session_state['selected_session'] = session_id
-                    
-                    # Get results for this session
-                    results_df = db.execute_query(
-                        """
-                        SELECT r.position, r.grid_position, r.points, r.status, r.race_time,
-                            d.full_name as driver_name, d.abbreviation, d.driver_number,
-                            t.name as team_name, t.team_color
-                        FROM results r
-                        JOIN drivers d ON r.driver_id = d.id
-                        JOIN teams t ON d.team_id = t.id
-                        WHERE r.session_id = ?
-                        ORDER BY r.position
-                        """,                        
-                        params=(session_id,)
-                    )
-                    
-                    if not results_df.empty:
-                        # Create tabs for different views
-                        tab1, tab2, tab3 = st.tabs(["Results Table", "Race Analysis", "Points & Stats"])
-                        
-                        with tab1:
-                            # Display the results table
-                            show_race_results(results_df)
-                            
-                            # Display race summary
-                            show_race_summary(results_df)
-                            
-                        with tab2:
-                            # Show position changes visualization
-                            show_position_changes(results_df)
-                            
-                            # Add additional filters and visualizations
-                            st.subheader("Filters")
-                            
-                            # Filter by team
-                            teams = results_df['team_name'].unique().tolist()
-                            selected_teams = st.multiselect("Filter by Teams", teams, default=teams)
-                            
-                            # Apply filters
-                            filtered_results = results_df[results_df['team_name'].isin(selected_teams)]
-                            
-                            # Show filtered position changes
-                            if not filtered_results.empty:
-                                show_position_changes(filtered_results)
-                            else:
-                                st.warning("No data to display with the current filters.")
-                            
-                        with tab3:
-                            # Show points distribution
-                            show_points_distribution(results_df)
-                            
-                            # Show additional stats
-                            st.subheader("Race Statistics")
-                            
-                            # Split into two columns
-                            col1, col2 = st.columns(2)
-                            
-                            with col1:
-                                # Points by team
-                                team_points = results_df.groupby('team_name')['points'].sum().reset_index()
-                                team_points = team_points.sort_values('points', ascending=False)
-                                
-                                st.subheader("Team Points in this Race")
-                                st.dataframe(team_points, use_container_width=True, hide_index=True)
-                            
-                            with col2:
-                                # Status summary (finishers, retirements, etc.)
-                                status_counts = results_df['status'].value_counts().reset_index()
-                                status_counts.columns = ['Status', 'Count']
-                                
-                                st.subheader("Race Status Summary")
-                                st.dataframe(status_counts, use_container_width=True, hide_index=True)
-                    else:
-                        st.warning("No results available for this session.")
-                else:
-                    st.warning("No race sessions available for this event.")
-            else:
-                st.info("Please select an event to view race results.")
-        
+                st.warning("No data to display with the current filters.")
+
+        with tab3:
+            show_points_distribution(results_df)
+
+            # Display race statistics
+            st.subheader("Race Statistics")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                # Points by team
+                team_points = results_df.groupby("team_name")["points"].sum().reset_index().sort_values("points", ascending=False)
+                st.subheader("Team Points in this Race")
+                st.dataframe(team_points, use_container_width=True, hide_index=True)
+
+            with col2:
+                # Status summary (finishers, retirements, etc.)
+                status_counts = results_df["status"].value_counts().reset_index()
+                status_counts.columns = ["Status", "Count"]
+                st.subheader("Race Status Summary")
+                st.dataframe(status_counts, use_container_width=True, hide_index=True)
+
+    except DatabaseError as e:
+        st.error(f"⚠️ Database error: {e}")
     except Exception as e:
-        st.error(f"Error loading race results: {e}")
+        st.error(f"⚠️ Unexpected error: {e}")
+
+race_results()

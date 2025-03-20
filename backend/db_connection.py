@@ -4,9 +4,12 @@ import logging
 from typing import Dict, Any, List, Optional, Tuple, Union
 from contextlib import contextmanager
 
+from backend.database import get_db_connection
 from backend.error_handling import DatabaseError, ResourceNotFoundError, ValidationError, handle_exception
 
+# Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class DatabaseConnectionHandler:
     """
@@ -74,34 +77,29 @@ class DatabaseConnectionHandler:
             error = handle_exception("get_event", e)
             raise error
     
-    def get_session(self, session_id: Union[int, str]) -> Dict[str, Any]:
-        """Get session by ID with proper type conversion"""
+    def get_session(session_id: int):
+        """
+        Retrieves a session from the database.
+
+        :param session_id: ID of the session
+        :return: Session data as a dictionary
+        """
+        query = """
+            SELECT id, name, date, session_type, total_laps, event_id
+            FROM sessions
+            WHERE id = ?
+        """
         try:
-            session_id_int = int(session_id)
-            cursor = self.conn.cursor()
-            cursor.execute("""
-                SELECT id, name, date, session_type, total_laps, event_id
-                FROM sessions WHERE id = ?
-            """, (session_id_int,))
-            row = cursor.fetchone()
-            
-            if not row:
-                raise ResourceNotFoundError(
-                    resource_type="Session",
-                    identifier=session_id
-                )
-                
-            return dict(row)
-        except (ValueError, TypeError) as e:
-            raise ValidationError(f"Invalid session ID format: {session_id}. Error: {str(e)}")
-        except ResourceNotFoundError:
-            # Re-raise resource not found errors
-            raise
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query, (session_id,))
+                session = cursor.fetchone()
+                if session is None:
+                    return None
+                return dict(session)
         except sqlite3.Error as e:
-            raise DatabaseError(f"Database error in get_session: {str(e)}")
-        except Exception as e:
-            error = handle_exception("get_session", e)
-            raise error
+            logger.error(f"Database error while retrieving session {session_id}: {e}")
+            raise DatabaseError("Error retrieving session data")
     
     def get_sessions_for_event(self, event_id: Union[int, str]) -> List[Dict[str, Any]]:
         """Get all sessions for an event with proper ID conversion"""
@@ -128,70 +126,47 @@ class DatabaseConnectionHandler:
             error = handle_exception("get_sessions_for_event", e)
             raise error
     
-    def get_lap_times(self, session_id: Union[int, str], driver_id: Optional[Union[int, str]] = None) -> pd.DataFrame:
-        """Get lap times with proper ID conversion"""
+    def get_lap_times(session_id: int):
+        """
+        Retrieves lap times for a given session.
+
+        :param session_id: Session ID
+        :return: List of lap times
+        """
+        query = """
+            SELECT lap_number, lap_time, sector1_time, sector2_time, sector3_time,
+                compound, tyre_life, is_personal_best, stint, track_status,
+                deleted, deleted_reason, position
+            FROM laps
+            WHERE session_id = ?
+        """
         try:
-            session_id_int = int(session_id)
-            driver_id_int = int(driver_id) if driver_id is not None else None
-            
-            # Build the query
-            query = """
-                SELECT l.lap_number, l.lap_time, l.sector1_time, l.sector2_time, l.sector3_time,
-                       l.compound, l.tyre_life, l.is_personal_best, l.stint, l.track_status,
-                       l.deleted, l.deleted_reason, l.position,
-                       d.full_name as driver_name, d.abbreviation, d.driver_number,
-                       t.name as team_name, t.team_color
-                FROM laps l
-                JOIN drivers d ON l.driver_id = d.id
-                JOIN teams t ON d.team_id = t.id
-                WHERE l.session_id = ?
-            """
-            
-            params = [session_id_int]
-            
-            if driver_id_int is not None:
-                query += " AND l.driver_id = ?"
-                params.append(driver_id_int)
-            
-            query += " ORDER BY l.lap_number, l.position"
-            
-            # Return as DataFrame for easier manipulation
-            df = pd.read_sql_query(query, self.conn, params=params)
-            return df
-        
-        except (ValueError, TypeError) as e:
-            raise ValidationError(f"Invalid ID format: {str(e)}")
-        except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            raise DatabaseError(f"Database error in get_lap_times: {str(e)}")
-        except Exception as e:
-            error = handle_exception("get_lap_times", e)
-            raise error
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query, (session_id,))
+                return [dict(row) for row in cursor.fetchall()]
+        except sqlite3.Error as e:
+            logger.error(f"Database error retrieving lap times for session {session_id}: {e}")
+            raise DatabaseError("Error retrieving lap time data")
     
-    def execute_query(self, query: str, params: Optional[Tuple] = None) -> pd.DataFrame:
+    def execute_query(query: str, params: tuple = ()):
         """
-        Execute a custom SQL query with automatic ID conversion.
-        Returns a pandas DataFrame for consistency and easier manipulation.
+        Executes a given SQL query with optional parameters.
+        Uses connection pooling to improve performance.
+
+        :param query: SQL query string
+        :param params: Tuple of query parameters
+        :return: Query result as a list of dictionaries
         """
         try:
-            # Convert any ID parameters to integers if they are strings
-            if params and isinstance(params, tuple):
-                processed_params = []
-                for param in params:
-                    if isinstance(param, str) and param.isdigit():
-                        processed_params.append(int(param))
-                    else:
-                        processed_params.append(param)
-                params = tuple(processed_params)
-            
-            # Execute query and return as DataFrame
-            df = pd.read_sql_query(query, self.conn, params=params)
-            return df
-                
-        except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            raise DatabaseError(f"Database error in execute_query: {str(e)}")
-        except Exception as e:
-            error = handle_exception("execute_query", e)
-            raise error
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query, params)
+                conn.commit()
+                return cursor.fetchall()
+        except sqlite3.Error as e:
+            logger.error(f"Database query execution error: {e}")
+            raise DatabaseError("Failed to execute database query")
 
 # Helper function to initialize the database handler
 def get_db_handler():

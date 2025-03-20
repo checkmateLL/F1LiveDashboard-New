@@ -6,64 +6,53 @@ from contextlib import contextmanager
 
 from backend.error_handling import DatabaseError
 
+# Configure logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-def get_connection(db_path: str = "f1_data_full_2025.db") -> sqlite3.Connection:
-    """
-    Get a connection to the SQLite database with proper error handling.
-    
-    Parameters:
-    - db_path: Path to the SQLite database file
-    
-    Returns:
-    - SQLite connection object
-    
-    Raises:
-    - DatabaseError: If connection cannot be established
-    """
-    try:
-        if not os.path.exists(db_path):
-            raise DatabaseError(f"Database file not found: {db_path}")
-            
-        connection = sqlite3.connect(db_path, check_same_thread=False)
-        connection.row_factory = sqlite3.Row
-        logger.info(f"Connected to SQLite database: {db_path}")
-        return connection
-    except sqlite3.Error as e:
-        error_msg = f"Error connecting to database: {str(e)}"
-        logger.error(error_msg)
-        raise DatabaseError(error_msg)
-    except Exception as e:
-        error_msg = f"Unexpected error connecting to database: {str(e)}"
-        logger.error(error_msg)
-        raise DatabaseError(error_msg)
+# Database file path
+DB_PATH = os.getenv("SQLITE_DB_PATH", "f1_data.db")
 
+# Connection pooling (singleton instance)
+class SQLiteConnectionPool:
+    """Singleton connection pool to reuse database connections."""
+    _instance = None
+
+    def __new__(cls, db_path=DB_PATH):
+        if cls._instance is None:
+            cls._instance = super(SQLiteConnectionPool, cls).__new__(cls)
+            cls._instance.db_path = db_path
+            cls._instance._connection = None
+        return cls._instance
+
+    def get_connection(self) -> sqlite3.Connection:
+        """Get a database connection with proper error handling."""
+        if self._connection is None:
+            try:
+                self._connection = sqlite3.connect(self.db_path, check_same_thread=False)
+                self._connection.row_factory = sqlite3.Row
+                logger.info(f"Connected to SQLite database: {self.db_path}")
+            except sqlite3.Error as e:
+                raise DatabaseError(f"Database connection error: {str(e)}")
+        return self._connection
+
+    def close_connection(self):
+        """Closes the database connection if it exists."""
+        if self._connection:
+            self._connection.close()
+            self._connection = None
+            logger.info("Database connection closed.")
+
+# Context manager for managing connections
 @contextmanager
-def get_db_connection(db_path: str = "f1_data_full_2025.db"):
-    """
-    Context manager for database connections to ensure proper cleanup.
-    
-    Parameters:
-    - db_path: Path to the SQLite database file
-    
-    Yields:
-    - SQLite connection object
-    
-    Raises:
-    - DatabaseError: If connection cannot be established
-    """
-    conn = None
+def get_db_connection():
+    """Context manager for database connections using the connection pool."""
+    pool = SQLiteConnectionPool()
+    conn = pool.get_connection()
     try:
-        conn = get_connection(db_path)
         yield conn
-    except DatabaseError:
-        # Re-raise database errors
-        raise
-    except Exception as e:
-        error_msg = f"Unexpected error in database connection: {str(e)}"
-        logger.error(error_msg)
-        raise DatabaseError(error_msg)
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
+        raise DatabaseError(f"Unexpected database error: {str(e)}")
     finally:
-        if conn:
-            conn.close()
-            logger.debug("Database connection closed")
+        pool.close_connection()

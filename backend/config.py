@@ -1,21 +1,67 @@
 import os
+import logging
 from dotenv import load_dotenv
 
+# Load environment variables from a .env file
 load_dotenv()
 
-# SQLite & Cache settings
-SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH", "./f1_data.db")
-FASTF1_CACHE_DIR = os.getenv("FASTF1_CACHE_DIR", "./fastf1_cache")
+# Configure logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# Redis settings (external – from RedisLabs)
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "13016"))
-REDIS_DB = int(os.getenv("REDIS_DB", "0"))
-REDIS_DECODE_RESPONSES = os.getenv("REDIS_DECODE_RESPONSES", "True") == "True"
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-REDIS_URL_CORS = os.getenv("REDIS_URL_CORS")
+# Required environment variables
+REQUIRED_ENV_VARS = [
+    "SQLITE_DB_PATH",
+    "FASTF1_CACHE_DIR"
+]
 
-# Weather service settings (using free Open-Meteo)
-WEATHER_LATITUDE = os.getenv("WEATHER_LATITUDE", "45.620")
-WEATHER_LONGITUDE = os.getenv("WEATHER_LONGITUDE", "9.281")
-WEATHER_SERVICE_URL = os.getenv("WEATHER_SERVICE_URL", "https://api.open-meteo.com/v1/forecast")
+# Optional environment variables with defaults
+OPTIONAL_ENV_VARS = {
+    "OPENWEATHER_API_KEY": None,  # Required for weather features
+    "REDIS_HOST": None,
+    "REDIS_PORT": "13016",
+    "REDIS_DB": "0",
+    "REDIS_DECODE_RESPONSES": "True",
+    "REDIS_PASSWORD": None,
+    "REDIS_URL_CORS": None,
+    "WEATHER_LATITUDE": "45.620",
+    "WEATHER_LONGITUDE": "9.281",
+    "WEATHER_SERVICE_URL": "https://api.open-meteo.com/v1/forecast"
+}
+
+# Check for missing required environment variables
+missing_vars = [var for var in REQUIRED_ENV_VARS if os.getenv(var) is None]
+
+if missing_vars:
+    missing_str = ", ".join(missing_vars)
+    raise EnvironmentError(f"Missing required environment variables: {missing_str}")
+
+# Load required environment variables
+SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH")
+FASTF1_CACHE_DIR = os.getenv("FASTF1_CACHE_DIR")
+
+# Load optional environment variables with defaults
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", OPTIONAL_ENV_VARS["OPENWEATHER_API_KEY"])
+REDIS_HOST = os.getenv("REDIS_HOST", OPTIONAL_ENV_VARS["REDIS_HOST"])
+REDIS_PORT = int(os.getenv("REDIS_PORT", OPTIONAL_ENV_VARS["REDIS_PORT"]))
+REDIS_DB = int(os.getenv("REDIS_DB", OPTIONAL_ENV_VARS["REDIS_DB"]))
+REDIS_DECODE_RESPONSES = os.getenv("REDIS_DECODE_RESPONSES", OPTIONAL_ENV_VARS["REDIS_DECODE_RESPONSES"]) == "True"
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", OPTIONAL_ENV_VARS["REDIS_PASSWORD"])
+REDIS_URL_CORS = os.getenv("REDIS_URL_CORS", OPTIONAL_ENV_VARS["REDIS_URL_CORS"])
+WEATHER_LATITUDE = os.getenv("WEATHER_LATITUDE", OPTIONAL_ENV_VARS["WEATHER_LATITUDE"])
+WEATHER_LONGITUDE = os.getenv("WEATHER_LONGITUDE", OPTIONAL_ENV_VARS["WEATHER_LONGITUDE"])
+WEATHER_SERVICE_URL = os.getenv("WEATHER_SERVICE_URL", OPTIONAL_ENV_VARS["WEATHER_SERVICE_URL"])
+
+# Log the configuration (excluding sensitive values)
+logger.info(f"Configuration Loaded: SQLITE_DB_PATH={SQLITE_DB_PATH}, FASTF1_CACHE_DIR={FASTF1_CACHE_DIR}")
+logger.info(f"Weather Service: {WEATHER_SERVICE_URL}, Latitude: {WEATHER_LATITUDE}, Longitude: {WEATHER_LONGITUDE}")
+
+if OPENWEATHER_API_KEY:
+    logger.info("Weather API key detected.")
+else:
+    logger.warning("No OpenWeather API key provided. Weather features may be limited.")
+
+if REDIS_HOST:
+    logger.info(f"Using Redis at {REDIS_HOST}:{REDIS_PORT}")
+else:
+    logger.warning("Redis is not configured. Session state will use local storage.")

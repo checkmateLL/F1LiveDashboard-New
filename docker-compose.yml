@@ -7,4 +7,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env  # Load environment variables from the .env file
+    volumes:
+      - ./f1_data.db:/app/f1_data_full_2025.db  # Persist SQLite database
+      - ./fastf1_cache:/app/fastf1_cache  # Persist FastF1 cache
