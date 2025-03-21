@@ -9,6 +9,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def race_replay():
     """Race Replay Visualization."""
     st.title("📽️ Race Replay")
@@ -37,9 +43,9 @@ def race_replay():
 
         # Get race sessions for the selected event
         sessions_df = data_service.get_race_sessions(event_id)
-        if sessions_df.empty:
+        if is_data_empty(sessions_df):
             st.warning("No race sessions available for this event.")
-            return
+            return pd.DataFrame()
 
         # Default to first available session
         session_options = {session["name"]: session["id"] for session in sessions_df}
@@ -50,9 +56,9 @@ def race_replay():
 
         # Fetch lap data for replay
         laps_df = data_service.get_laps(session_id)
-        if laps_df.empty:
+        if is_data_empty(laps_df):
             st.warning("No lap data available for this session.")
-            return
+            return pd.DataFrame()
 
         # Convert lap number to a timeline
         lap_numbers = sorted(laps_df["lap_number"].unique())

@@ -10,6 +10,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def strategy_comparison_analysis():
     """Race Strategy & Performance Analysis Dashboard."""
     st.title("🏎️ Strategy Comparison & Effectiveness Analysis")
@@ -49,15 +55,15 @@ def strategy_comparison_analysis():
 
         # Fetch race results
         results_df = data_service.get_race_results(session_id)
-        if results_df.empty:
+        if is_data_empty(results_df):
             st.warning("No race results available.")
-            return
+            return pd.DataFrame()
 
         # Fetch lap data (used to derive pit stops & strategy)
         laps_df = data_service.get_lap_times(session_id)
-        if laps_df.empty:
+        if is_data_empty(laps_df):
             st.warning("No lap data available.")
-            return
+            return pd.DataFrame()
 
         # Derive pit stops by detecting compound changes
         results_df["total_stops"] = results_df["driver_id"].map(lambda driver: calculate_pit_stops(laps_df, driver))

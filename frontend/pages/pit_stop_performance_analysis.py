@@ -11,6 +11,12 @@ st.set_page_config(layout="wide")
 
 st.title("Pit Stop Performance Analysis (Optimized Query Execution & ID Handling)")
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def get_pit_stop_data(session_id):
     """
     Retrieves pit stop times and effectiveness per driver by analyzing lap data.
@@ -39,6 +45,16 @@ def plot_pit_stop_times(df):
     """
     Visualizes pit stop duration per driver.
     """
+    if isinstance(df, list) and df:
+        try:
+            df = pd.DataFrame(df)
+        except Exception:
+            st.warning("Could not convert pit stop data to DataFrame")
+            return
+            
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return
+    
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.boxplot(ax=ax, x="driver_name", y="stop_time", data=df)
     ax.set_xlabel("Driver")
@@ -50,6 +66,15 @@ def plot_pit_stop_counts(df):
     """
     Displays total pit stops per driver.
     """
+    if isinstance(df, list) and df:
+        try:
+            df = pd.DataFrame(df)
+        except Exception:
+            st.warning("Could not convert pit stop data to DataFrame")
+            return
+            
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.barplot(ax=ax, x="driver_name", y="total_stops", hue="team_name", data=df)
     ax.set_xlabel("Driver")
@@ -61,6 +86,15 @@ def plot_pit_stop_effectiveness(df):
     """
     Analyzes correlation between pit stop count and final position.
     """
+    if isinstance(df, list) and df:
+        try:
+            df = pd.DataFrame(df)
+        except Exception:
+            st.warning("Could not convert pit stop data to DataFrame")
+            return
+            
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return
     fig, ax = plt.subplots(figsize=(10, 6))
     sns.scatterplot(ax=ax, x="total_stops", y="classified_position", hue="driver_name", data=df, s=100)
     ax.set_xlabel("Total Pit Stops")
@@ -77,12 +111,24 @@ selected_session = st.selectbox("Select Session", session_list if session_list e
 
 df = get_pit_stop_data(selected_session)
 
-if not df.empty:
+if isinstance(df, pd.DataFrame) and not df.empty:
     plot_pit_stop_times(df)
     plot_pit_stop_counts(df)
     plot_pit_stop_effectiveness(df)
     
     st.write("### Pit Stop Performance Data")
     st.dataframe(df)
+elif isinstance(df, list) and df:
+    # Convert list to DataFrame if needed
+    try:
+        df_converted = pd.DataFrame(df)
+        plot_pit_stop_times(df_converted)
+        plot_pit_stop_counts(df_converted)
+        plot_pit_stop_effectiveness(df_converted)
+        
+        st.write("### Pit Stop Performance Data")
+        st.dataframe(df_converted)
+    except Exception as e:
+        st.warning(f"Could not process pit stop data: {e}")
 else:
     st.warning("No pit stop data available for this session.")

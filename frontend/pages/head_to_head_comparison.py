@@ -87,8 +87,8 @@ with get_db_handler() as db:
     drivers = db.execute_query("SELECT DISTINCT driver_id, full_name FROM drivers")
 
 session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-driver_dict = {int(driver["driver_id"]): driver["driver_name"] for driver in drivers if isinstance(driver, dict) and "driver_id" in driver}
-
+driver_dict = {int(driver["driver_id"]): driver["driver_name"] for driver in drivers 
+              if isinstance(driver, dict) and "driver_id" in driver and driver["driver_id"] and str(driver["driver_id"]).strip()}
 selected_session = st.selectbox("Select Session", session_list if session_list else [0])
 selected_driver1 = st.selectbox("Select Driver 1", driver_dict.keys(), format_func=lambda x: driver_dict[x])
 selected_driver2 = st.selectbox("Select Driver 2", driver_dict.keys(), format_func=lambda x: driver_dict[x])
@@ -96,7 +96,7 @@ selected_driver2 = st.selectbox("Select Driver 2", driver_dict.keys(), format_fu
 if selected_driver1 != selected_driver2:
     df = get_head_to_head_data(selected_session, selected_driver1, selected_driver2)
     
-    if not df.empty:
+    if not df or (isinstance(df, pd.DataFrame) and df.empty):
         plot_lap_time_comparison(df)
         plot_sector_comparison(df)
         plot_pit_stop_comparison(df)

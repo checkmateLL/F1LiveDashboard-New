@@ -43,7 +43,7 @@ def fuel_load_analysis():
 
         # Fetch lap data
         laps_df = data_service.get_lap_times(session_id)
-        if laps_df.empty:
+        if not laps_df or (isinstance(laps_df, pd.DataFrame) and laps_df.empty):
             st.warning("No lap data available.")
             return
 

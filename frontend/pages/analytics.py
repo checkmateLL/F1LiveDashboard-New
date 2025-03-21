@@ -67,8 +67,8 @@ def analytics():
             # Fetch available sessions
             session_options = fetch_sessions(db)
 
-            if session_options.empty:
-                st.error("No sessions available.")
+            if not session_options or (isinstance(session_options, pd.DataFrame) and session_options.empty):
+                st.warning("No session available.")              
                 return
             
             # Properly display event + session + date
@@ -85,8 +85,8 @@ def analytics():
             if st.button("Generate Analysis"):
                 if analysis_type == "Lap Time Comparison":
                     lap_times = fetch_lap_times(db, selected_session_id)
-                    if lap_times.empty:
-                        st.error("No lap data available.")
+                    if not lap_times or (isinstance(lap_times, pd.DataFrame) and lap_times.empty):
+                        st.warning("No lap data available.")
                     else:
                         st.subheader("Lap Time Comparison")
                         st.dataframe(lap_times)
@@ -100,7 +100,8 @@ def analytics():
                             telemetry1 = fetch_telemetry(db, selected_session_id, driver1)
                             telemetry2 = fetch_telemetry(db, selected_session_id, driver2)
 
-                            if not telemetry1.empty and not telemetry2.empty:
+                            if ((isinstance(telemetry1, pd.DataFrame) and not telemetry1.empty) or (not isinstance(telemetry1, pd.DataFrame) and telemetry1)) and \
+                            ((isinstance(telemetry2, pd.DataFrame) and not telemetry2.empty) or (not isinstance(telemetry2, pd.DataFrame) and telemetry2)):
                                 st.subheader(f"Time vs Speed: {driver1} vs {driver2}")
                                 plot_time_vs_speed(telemetry1, driver1)
                                 plot_time_vs_speed(telemetry2, driver2)

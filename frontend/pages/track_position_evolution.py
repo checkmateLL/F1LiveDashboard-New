@@ -9,6 +9,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def track_position_evolution():
     """Track Position Evolution & Heatmap Visualization."""
     st.title("📍 Track Position Evolution")
@@ -43,9 +49,9 @@ def track_position_evolution():
 
         # Fetch telemetry data
         telemetry_df = data_service.get_telemetry(session_id)
-        if telemetry_df.empty:
+        if is_data_empty(telemetry_df):
             st.warning("No telemetry data available for this session.")
-            return
+            return pd.DataFrame()
 
         # Create heatmap
         plot_track_position_heatmap(telemetry_df)

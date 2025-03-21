@@ -8,6 +8,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def race_start_analysis():
     """Race Start Performance & Position Gains."""
     st.title("🚦 Race Start Analysis")
@@ -42,15 +48,15 @@ def race_start_analysis():
 
         # Fetch lap 1 data
         lap1_df = data_service.get_lap_times(session_id, lap_number=1)
-        if lap1_df.empty:
+        if is_data_empty(lap1_df):
             st.warning("No data available for lap 1.")
-            return
+            return pd.DataFrame()
 
         # Fetch grid positions
         results_df = data_service.get_race_results(session_id)
-        if results_df.empty:
+        if is_data_empty(results_df):
             st.warning("No race result data available.")
-            return
+            return pd.DataFrame()
 
         # Merge grid positions with first-lap positions
         start_data = results_df[["driver_name", "grid_position", "team_name"]].merge(

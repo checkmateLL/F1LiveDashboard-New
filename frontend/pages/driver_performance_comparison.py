@@ -66,15 +66,15 @@ with get_db_handler() as db:
     drivers = db.execute_query("SELECT DISTINCT driver_id, full_name FROM drivers")
 
 session_list = [int(session["session_id"]) for session in sessions if isinstance(session, dict) and "session_id" in session]
-driver_dict = {int(driver["driver_id"]): driver["driver_name"] for driver in drivers if isinstance(driver, dict) and "driver_id" in driver}
-
+driver_dict = {int(driver["driver_id"]): driver["driver_name"] for driver in drivers 
+              if isinstance(driver, dict) and "driver_id" in driver and driver["driver_id"] and str(driver["driver_id"]).strip()}
 selected_session = st.selectbox("Select Session", session_list if session_list else [0])
 selected_drivers = st.multiselect("Select Drivers", driver_dict.keys(), format_func=lambda x: driver_dict[x])
 
 if len(selected_drivers) >= 2:
     df = get_driver_performance_data(selected_session, selected_drivers)
     
-    if not df.empty:
+    if not df or (isinstance(df, pd.DataFrame) and df.empty):
         plot_lap_time_comparison(df)
         plot_sector_times(df)
         

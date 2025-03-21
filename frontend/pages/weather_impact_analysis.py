@@ -8,6 +8,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def weather_impact_analysis():
     """Weather Impact on Tire Performance & Race Strategy."""
     st.title("🌦️ Weather Impact Analysis")
@@ -42,9 +48,9 @@ def weather_impact_analysis():
 
         # Fetch weather impact data
         weather_df = data_service.get_weather_impact_data(session_id)
-        if weather_df.empty:
+        if is_data_empty(weather_df):
             st.warning("No weather impact data available.")
-            return
+            return pd.DataFrame()
 
         # Create visualization tabs
         tab1, tab2, tab3 = st.tabs(["Weather vs Lap Time", "Weather Trends", "Tire Performance"])

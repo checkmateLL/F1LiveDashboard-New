@@ -11,6 +11,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def race_pace_analysis():
     """Race Pace Analysis Dashboard."""
     st.title("📊 Race Pace & Lap Time Predictions")
@@ -45,9 +51,9 @@ def race_pace_analysis():
 
         # Fetch lap times including sector times
         lap_data = data_service.get_lap_times(session_id, include_sectors=True)
-        if lap_data.empty:
+        if is_data_empty(lap_data):
             st.warning("No lap data available for this session.")
-            return
+            return pd.DataFrame()
 
         # Convert lap times to seconds
         lap_data["lap_time_sec"] = lap_data["lap_time"].apply(convert_time_to_seconds)

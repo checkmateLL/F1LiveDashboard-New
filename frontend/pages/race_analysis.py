@@ -13,6 +13,12 @@ data_service = F1DataService()
 
 st.title("Race Analysis")
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def convert_time_to_seconds(time_str):
     """Convert lap time strings to seconds."""
     if not time_str or pd.isna(time_str):
@@ -67,9 +73,9 @@ def race_analysis():
 
         # Get lap data
         laps_df = data_service.get_lap_times(session_id)
-        if laps_df.empty:
+        if is_data_empty(laps_df):
             st.warning("No lap data available for this session.")
-            return
+            return pd.DataFrame()
         
         # Convert time values
         laps_df['lap_time_sec'] = laps_df['lap_time'].apply(convert_time_to_seconds)
@@ -149,9 +155,9 @@ def show_tire_strategy_analysis(laps_df):
     filtered_df = laps_df[laps_df['driver_name'].isin(selected_drivers)]
     filtered_df = filtered_df[~(filtered_df['deleted'] == 1)]
     
-    if filtered_df.empty:
+    if is_data_empty(filtered_df):
         st.warning("No tire data available with the current filters.")
-        return
+        return pd.DataFrame()
     
     # Display options
     view_type = st.radio("View Type", ["Tire Degradation", "Pit Stop Strategy", "Stint Comparison"])
@@ -181,7 +187,7 @@ def show_tire_strategy_analysis(laps_df):
                 
                 for stint in stints:
                     stint_data = driver_data[driver_data['stint'] == stint]
-                    if not stint_data.empty:
+                    if not is_data_empty(stint_data):
                         # Get compound for this stint
                         compound = stint_data['compound'].iloc[0] if pd.notna(stint_data['compound'].iloc[0]) else 'Unknown'
                         
@@ -242,7 +248,7 @@ def show_tire_strategy_analysis(laps_df):
         
         for driver in selected_drivers:
             driver_data = filtered_df[filtered_df['driver_name'] == driver]
-            if not driver_data.empty:
+            if not is_data_empty(driver_data):
                 # Group by stint
                 stints = driver_data['stint'].unique()
                 stints = [s for s in stints if pd.notna(s)]
@@ -343,7 +349,7 @@ def show_tire_strategy_analysis(laps_df):
         
         for driver in selected_drivers:
             driver_data = filtered_df[filtered_df['driver_name'] == driver]
-            if not driver_data.empty:
+            if not is_data_empty(driver_data):
                 # Group by stint
                 stints = driver_data['stint'].unique()
                 stints = [s for s in stints if pd.notna(s)]
@@ -355,7 +361,7 @@ def show_tire_strategy_analysis(laps_df):
                     
                     # Get data for this stint
                     stint_data = driver_data[driver_data['stint'] == stint]
-                    if stint_data.empty:
+                    if is_data_empty(stint_data):
                         continue
                     
                     # Find the first lap of this stint
@@ -399,7 +405,7 @@ def show_tire_strategy_analysis(laps_df):
             
             for driver in selected_drivers:
                 driver_pit_stops = pit_df[pit_df['Driver'] == driver]
-                if not driver_pit_stops.empty:
+                if not is_data_empty(driver_pit_stops):
                     driver_info = filtered_df[filtered_df['driver_name'] == driver].iloc[0]
                     team_color = driver_info['team_color']
                     
@@ -487,7 +493,7 @@ def show_tire_strategy_analysis(laps_df):
         stint_summary = []
         for driver in selected_drivers:
             driver_data = filtered_df[filtered_df['driver_name'] == driver]
-            if not driver_data.empty:
+            if not is_data_empty(driver_data):
                 # Group by stint
                 stints = driver_data['stint'].unique()
                 stints = [s for s in stints if pd.notna(s)]
@@ -627,9 +633,9 @@ def show_driver_comparison(laps_df):
     driver1_data = driver1_data[~(driver1_data['deleted'] == 1)]
     driver2_data = driver2_data[~(driver2_data['deleted'] == 1)]
     
-    if driver1_data.empty or driver2_data.empty:
+    if is_data_empty(driver1_data) or is_data_empty(driver2_data):
         st.warning("Insufficient data for comparison.")
-        return
+        return pd.DataFrame()
     
     # Calculate lap time differences
     st.subheader("Lap Time Comparison")
@@ -826,9 +832,9 @@ def show_sector_analysis(laps_df):
     filtered_df = laps_df[laps_df['driver_name'].isin(selected_drivers)]
     filtered_df = filtered_df[~(filtered_df['deleted'] == 1)]
     
-    if filtered_df.empty:
+    if is_data_empty(filtered_df):
         st.warning("No sector data available with the current filters.")
-        return
+        return pd.DataFrame()
     
     if sector == "All Sectors":
         # Show breakdown of lap time by sector
@@ -946,9 +952,9 @@ def show_sector_analysis(laps_df):
         # Filter for valid sector data
         sector_df = filtered_df[pd.notna(filtered_df[sector_col])]
         
-        if sector_df.empty:
+        if is_data_empty(sector_df):
             st.warning(f"No valid {sector} data available with the current filters.")
-            return
+            return pd.DataFrame()
         
         # Create sector time visualization
         fig = go.Figure()
@@ -1024,7 +1030,7 @@ def show_sector_analysis(laps_df):
             best_sectors_df = pd.DataFrame(best_sectors).sort_values('Time_Sec')
             
             # Calculate delta to fastest
-            if not best_sectors_df.empty:
+            if not is_data_empty(best_sectors_df):
                 fastest_time = best_sectors_df['Time_Sec'].min()
                 best_sectors_df['Delta'] = best_sectors_df['Time_Sec'].apply(
                     lambda x: f"+{(x - fastest_time):.3f}s" if x > fastest_time else "Leader"
@@ -1058,9 +1064,9 @@ def show_telemetry_analysis(session_id, db):
         params=(session_id,)
     )
     
-    if drivers_df.empty:
+    if is_data_empty(drivers_df):
         st.warning("No telemetry data available for this session.")
-        return
+        return pd.DataFrame
     
     # Allow user to select a driver
     driver_options = drivers_df['driver_name'].tolist()
@@ -1082,7 +1088,7 @@ def show_telemetry_analysis(session_id, db):
         params=(session_id, driver_id)
     )
     
-    if laps_df.empty:
+    if is_data_empty(laps_df):
         st.warning(f"No lap telemetry data for {selected_driver}. Please check if telemetry is available in the database.")
         st.write("Available laps in database:", db.execute_query("SELECT DISTINCT lap_number FROM telemetry WHERE session_id = ?", (session_id,)))
         return
@@ -1099,7 +1105,7 @@ def show_telemetry_analysis(session_id, db):
     if compare_enabled:
         # Get other drivers
         other_drivers = drivers_df[drivers_df['driver_name'] != selected_driver]
-        if not other_drivers.empty:
+        if not is_data_empty(other_drivers):
             comparison_driver = st.selectbox("Compare with", other_drivers['driver_name'].tolist())
             comparison_driver_id = other_drivers[other_drivers['driver_name'] == comparison_driver]['id'].iloc[0]
     
@@ -1133,10 +1139,10 @@ def show_telemetry_analysis(session_id, db):
             params=(session_id, comparison_driver_id, selected_lap)
         )
     
-    if telemetry_df.empty:
+    if is_data_empty(telemetry_df):
         st.warning(f"No telemetry data available for {selected_driver} in lap {selected_lap}.")
         st.write("Available telemetry in database:", db.execute_query("SELECT * FROM telemetry WHERE session_id = ? AND driver_id = ?", (session_id, driver_id)))
-        return
+        return pd.DataFrame()
     
     # Create tabs for different telemetry views
     tel_tab1, tel_tab2, tel_tab3, tel_tab4 = st.tabs(["Speed & Throttle", "Braking & DRS", "Gears", "Track Map"])
@@ -1149,7 +1155,7 @@ def show_telemetry_analysis(session_id, db):
         show_telemetry_chart(telemetry_df, 'throttle', "Throttle Telemetry", comparison_df)
         
         # Show speed vs distance visualization if compared
-        if comparison_df is not None and not comparison_df.empty:
+        if comparison_df is not None and not is_data_empty(comparison_df):
             st.subheader("Speed vs Distance Comparison")
             
             # Calculate distance based on position
@@ -1591,9 +1597,9 @@ def show_race_overview(laps_df, session_id, db):
         params=(session_id,)
     )
     
-    if results_df.empty:
+    if is_data_empty(results_df):
         st.warning("No race results available.")
-        return
+        return pd.DataFrame()
     
     # Create formatted table
     show_race_results(results_df)
@@ -1648,7 +1654,7 @@ def show_race_overview(laps_df, session_id, db):
             
         # Get driver color
         driver_data = laps_df[laps_df['driver_name'] == driver]
-        if driver_data.empty:
+        if is_data_empty(driver_data):
             continue
             
         team_color = driver_data['team_color'].iloc[0]
@@ -1743,7 +1749,7 @@ def show_race_overview(laps_df, session_id, db):
         driver1_data = laps_df[laps_df['driver_name'] == selected_driver1]
         driver2_data = laps_df[laps_df['driver_name'] == selected_driver2]
         
-        if not driver1_data.empty and not driver2_data.empty:
+        if not is_data_empty(driver1_data) and not is_data_empty(driver2_data):
             driver1_color = driver1_data['team_color'].iloc[0]
             driver2_color = driver2_data['team_color'].iloc[0]
             
@@ -1790,7 +1796,7 @@ def show_race_overview(laps_df, session_id, db):
                 d1_lap = laps_df[(laps_df['driver_name'] == selected_driver1) & (laps_df['lap_number'] == lap_num)]
                 d2_lap = laps_df[(laps_df['driver_name'] == selected_driver2) & (laps_df['lap_number'] == lap_num)]
                 
-                if not d1_lap.empty and not d2_lap.empty:
+                if not is_data_empty(d1_lap) and not is_data_empty(d2_lap):
                     if pd.notna(d1_lap['lap_time_sec'].iloc[0]) and pd.notna(d2_lap['lap_time_sec'].iloc[0]):
                         lap_times.append({
                             'Lap': int(lap_num),
@@ -2047,7 +2053,7 @@ def show_race_summary(results_df):
         # Calculate averages and improvements
         valid_positions = results_df[pd.notna(results_df['grid_position']) & pd.notna(results_df['position'])]
         
-        if not valid_positions.empty:
+        if not is_data_empty(valid_positions):
             avg_grid = valid_positions['grid_position'].mean()
             avg_finish = valid_positions['position'].mean()
             improvements = valid_positions[valid_positions['position_change'] > 0]
@@ -2070,7 +2076,7 @@ def show_race_summary(results_df):
         status_counts = results_df['status'].value_counts().reset_index()
         status_counts.columns = ['Status', 'Count']
         
-        if not status_counts.empty:
+        if not is_data_empty(status_counts):
             st.subheader("Race Status Breakdown")
             
             # Create a bar chart of status
@@ -2113,9 +2119,9 @@ def show_session_overview(laps_df, session_id, session_type, db):
         params=(session_id,)
     )
     
-    if results_df.empty:
+    if is_data_empty(results_df):
         st.warning("No session results available.")
-        return
+        return pd.DataFrame()
     
     # Create formatted table for qualifying results
     st.subheader("Session Results")
@@ -2168,7 +2174,7 @@ def show_session_overview(laps_df, session_id, session_type, db):
                 # Filter to non-null times
                 segment_data = display_df[pd.notna(display_df[sec_col])].copy()
                 
-                if not segment_data.empty:
+                if not is_data_empty(segment_data):
                     # Sort by time
                     segment_data = segment_data.sort_values(sec_col)
                     
@@ -2225,7 +2231,7 @@ def show_session_overview(laps_df, session_id, session_type, db):
         # Remove any invalid times
         lap_times = lap_times[pd.notna(lap_times['lap_time_sec'])]
         
-        if not lap_times.empty:
+        if not is_data_empty(lap_times):
             # Create a line chart showing evolution of lap times
             fig = go.Figure()
             
@@ -2322,7 +2328,7 @@ def show_long_run_analysis(laps_df):
     filtered_df = laps_df[laps_df['driver_name'].isin(selected_drivers)]
     filtered_df = filtered_df[~(filtered_df['deleted'] == 1)]
     
-    if filtered_df.empty:
+    if is_data_empty(filtered_df):
         st.warning("No data available with the current filters.")
         return
     
@@ -2332,7 +2338,7 @@ def show_long_run_analysis(laps_df):
     for driver in selected_drivers:
         driver_data = filtered_df[filtered_df['driver_name'] == driver]
         
-        if driver_data.empty:
+        if is_data_empty(driver_data):
             continue
             
         # Group by stint

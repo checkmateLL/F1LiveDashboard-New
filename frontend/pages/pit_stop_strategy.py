@@ -12,6 +12,12 @@ st.set_page_config(layout="wide")
 
 st.title("Pit Stop Strategy Optimization (ML-Based Simulation)")
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def get_pit_stop_data(session_id):
     """
     Retrieves historical pit stop and race pace data for ML-based strategy simulation.
@@ -77,7 +83,7 @@ selected_session = st.selectbox("Select Session", session_list if session_list e
 
 df = get_pit_stop_data(selected_session)
 
-if not df.empty:
+if not is_data_empty(df):
     model = train_pit_strategy_model(df)
     plot_pit_strategy_simulation(df, model)
     

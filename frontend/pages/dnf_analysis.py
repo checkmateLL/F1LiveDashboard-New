@@ -43,7 +43,7 @@ def dnf_analysis():
 
         # Fetch DNF data from results table (derived from race status)
         dnf_df = data_service.get_dnf_data(session_id)
-        if dnf_df.empty:
+        if not dnf_df or (isinstance(dnf_df, pd.DataFrame) and dnf_df.empty):
             st.warning("No DNF data available for this session.")
             return
 

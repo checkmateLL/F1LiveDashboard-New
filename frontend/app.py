@@ -1,6 +1,23 @@
 import sys
 import os
+
+# Ensure Python recognizes backend directory
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import streamlit as st
+
+
+from backend.error_handling import ValidationError, DatabaseError
+from frontend.components.navbar import create_navbar
+from frontend.pages.home import home
+from frontend.pages.season_overview import season_overview
+from frontend.pages.race_results import race_results
+from frontend.pages.lap_times import lap_times
+from frontend.pages.standings import standings
+from frontend.pages.performance import performance
+from frontend.pages.race_analysis import race_analysis
+from frontend.pages.race_replay import race_replay
+from frontend.pages.event_schedule import event_schedule
 
 # Set Page Configuration
 st.set_page_config(
@@ -9,29 +26,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# Ensure Python recognizes backend directory
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from frontend.components.navbar import create_navbar
-from backend.error_handling import ValidationError, DatabaseError
-
-# Attempt to import all pages with error handling
-try:
-    from frontend.pages.home import home
-    from frontend.pages.season_overview import season_overview
-    from frontend.pages.race_results import race_results
-    from frontend.pages.lap_times import lap_times
-    from frontend.pages.standings import standings
-    from frontend.pages.performance import performance
-    from frontend.pages.race_analysis import race_analysis
-    from frontend.pages.race_replay import race_replay
-    from frontend.pages import event_schedule as event_schedule_module
-    event_schedule = event_schedule_module.event_schedule
-except ImportError as e:
-    st.error(f"⚠️ Page import failed: {e}")
-
-
 
 # Store current page in session state for persistent navigation
 if "current_page" not in st.session_state:
@@ -81,12 +75,7 @@ def apply_styles():
 
 apply_styles()  # Apply styles dynamically
 
-# Sidebar Navigation with Error Handling for Image
-try:
-    st.sidebar.image("https://www.formula1.com/etc/designs/fom-website/images/f1_logo.svg", width=200)
-except Exception:
-    st.sidebar.warning("⚠️ F1 Logo failed to load. Check your internet connection.")
-
+st.sidebar.image("https://www.formula1.com/etc/designs/fom-website/images/f1_logo.svg", width=200)
 st.sidebar.title("F1 Dashboard")
 
 # Persistent Top Navigation

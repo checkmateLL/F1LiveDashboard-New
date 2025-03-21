@@ -10,6 +10,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def season_overview():
     """Displays the full season calendar and race details."""
     st.title("📅 F1 Season Overview")
@@ -156,7 +162,7 @@ def display_event_details(event_id):
     # Display sessions
     st.subheader("Sessions")
 
-    if not sessions.empty:
+    if not is_data_empty(sessions):
         display_df = sessions[["name", "session_type", "total_laps"]].rename(columns={
             "name": "Session",
             "session_type": "Type",

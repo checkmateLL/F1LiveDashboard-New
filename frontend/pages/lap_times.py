@@ -32,9 +32,9 @@ def lap_times():
             return
         
         # Determine default event from session state
-        default_event = st.session_state.get("selected_event", next(iter(event_options.values())))
+        default_event = st.session_state.get("selected_event", next(iter(event_options.values())))        
         selected_event = st.selectbox("Select Event", options=event_options.keys(), 
-                              index=list(event_options.values()).index(default_event_id),
+                              index=list(event_options.values()).index(default_event),
                               key="laptimes_event")
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
@@ -55,7 +55,7 @@ def lap_times():
 
         # Load lap times data
         laps_df = data_service.get_lap_times(session_id)
-        if laps_df.empty:
+        if not laps_df or (isinstance(laps_df, pd.DataFrame) and laps_df.empty):
             st.warning("No lap time data available for this session.")
             return
 
@@ -126,7 +126,7 @@ def show_lap_time_analysis(laps_df):
     if not include_deleted:
         filtered_df = filtered_df[~(filtered_df["deleted"] == 1)]
     
-    if filtered_df.empty:
+    if not filtered_df or (isinstance(filtered_df, pd.DataFrame) and filtered_df.empty):
         st.warning("No data available with the current filters.")
         return
     
@@ -136,7 +136,8 @@ def show_lap_time_analysis(laps_df):
     # Add a line for each driver
     for driver in selected_drivers:
         driver_data = filtered_df[filtered_df["driver_name"] == driver]
-        if not driver_data.empty:
+        if not driver_data or (isinstance(driver_data, pd.DataFrame) and driver_data.empty):
+            st.warning("No driver data available.")
             team_color = driver_data["team_color"].iloc[0]
             
             fig.add_trace(go.Scatter(
@@ -215,7 +216,8 @@ def show_lap_time_analysis(laps_df):
         fastest_laps_df = pd.DataFrame(fastest_laps).sort_values("Time_Sec")
         
         # Calculate delta to fastest
-        if not fastest_laps_df.empty:
+        if not fastest_laps_df or (isinstance(fastest_laps_df, pd.DataFrame) and fastest_laps_df.empty):
+            st.warning("No delta for fastest lap available!")
             fastest_time = fastest_laps_df["Time_Sec"].min()
             fastest_laps_df["Delta"] = fastest_laps_df["Time_Sec"].apply(
                 lambda x: f"+{(x - fastest_time):.3f}s" if x > fastest_time else "Leader"
@@ -261,7 +263,7 @@ def show_sector_analysis(laps_df):
     filtered_df = filtered_df[~(filtered_df["deleted"] == 1)]
     filtered_df = filtered_df[pd.notna(filtered_df[sector_col])]
     
-    if filtered_df.empty:
+    if not filtered_df or (isinstance(filtered_df, pd.DataFrame) and filtered_df.empty):
         st.warning("No sector data available with the current filters.")
         return
     
@@ -339,7 +341,8 @@ def show_sector_analysis(laps_df):
         best_sectors_df = pd.DataFrame(best_sectors).sort_values("Time_Sec")
         
         # Calculate delta to fastest
-        if not best_sectors_df.empty:
+        if not best_sectors_df or (isinstance(best_sectors_df, pd.DataFrame) and best_sectors_df.empty):
+            st.warning("No delta for best sectors!")
             fastest_time = best_sectors_df["Time_Sec"].min()
             best_sectors_df["Delta"] = best_sectors_df["Time_Sec"].apply(
                 lambda x: f"+{(x - fastest_time):.3f}s" if x > fastest_time else "Leader"
@@ -372,7 +375,7 @@ def show_tire_analysis(laps_df):
     filtered_df = laps_df[laps_df["driver_name"].isin(selected_drivers)]
     filtered_df = filtered_df[~(filtered_df["deleted"] == 1)]
     
-    if filtered_df.empty:
+    if not filtered_df or (isinstance(filtered_df, pd.DataFrame) and filtered_df.empty):
         st.warning("No tire data available with the current filters.")
         return
     
@@ -399,7 +402,8 @@ def show_tire_analysis(laps_df):
             
             for stint in stints:
                 stint_data = driver_data[driver_data["stint"] == stint]
-                if not stint_data.empty:
+                if not stint_data or (isinstance(stint_data, pd.DataFrame) and stint_data.empty):
+                    st.warning("No stint data available!")
                     # Get compound for this stint
                     compound = stint_data["compound"].iloc[0] if pd.notna(stint_data["compound"].iloc[0]) else "Unknown"
                     
@@ -459,7 +463,8 @@ def show_tire_analysis(laps_df):
     stint_summary = []
     for driver in selected_drivers:
         driver_data = filtered_df[filtered_df["driver_name"] == driver]
-        if not driver_data.empty:
+        if not driver_data or (isinstance(driver_data, pd.DataFrame) and driver_data.empty):
+            st.warning("No driver dara available!")
             # Group by stint
             stints = driver_data["stint"].unique()
             stints = [s for s in stints if pd.notna(s)]
@@ -518,9 +523,10 @@ def show_driver_comparison(laps_df):
     driver1_data = driver1_data[~(driver1_data["deleted"] == 1)]
     driver2_data = driver2_data[~(driver2_data["deleted"] == 1)]
     
-    if driver1_data.empty or driver2_data.empty:
+    if ((isinstance(driver1_data, pd.DataFrame) and not driver1_data.empty) or (not isinstance(driver1_data, pd.DataFrame) and driver1_data)) and \
+    ((isinstance(driver2_data, pd.DataFrame) and not driver2_data.empty) or (not isinstance(driver2_data, pd.DataFrame) and driver2_data)):
         st.warning("Insufficient data for comparison.")
-        return
+        return    
     
     # Calculate lap time differences
     st.subheader("Lap Time Comparison")

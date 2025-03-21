@@ -9,6 +9,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def race_results():
     """Race Results Dashboard."""
     st.title("🏁 Race Results")
@@ -37,9 +43,9 @@ def race_results():
 
         # Get race sessions for the selected event
         sessions_df = data_service.get_race_sessions(event_id)
-        if sessions_df.empty:
+        if is_data_empty(sessions_df):
             st.warning("No race sessions available for this event.")
-            return
+            return pd.DataFrame()
 
         # Default to first race session
         session_options = {session["name"]: session["id"] for session in sessions_df}
@@ -50,7 +56,7 @@ def race_results():
 
         # Get race results
         results_df = data_service.get_race_results(session_id)
-        if results_df.empty:
+        if not results_df or (isinstance(results_df, pd.DataFrame) and results_df.empty):
             st.warning("No race results available for this session.")
             return
 
@@ -72,7 +78,7 @@ def race_results():
 
             filtered_results = results_df[results_df["team_name"].isin(selected_teams)] if selected_teams else results_df
 
-            if not filtered_results.empty:
+            if not is_data_empty(filtered_results):
                 show_position_changes(filtered_results)
             else:
                 st.warning("No data to display with the current filters.")

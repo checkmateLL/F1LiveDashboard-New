@@ -8,6 +8,12 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def track_specific_performance():
     """Track-Specific Performance Analysis."""
     st.title("🏎️ Track-Specific Performance Analysis")
@@ -31,9 +37,9 @@ def track_specific_performance():
 
         # Fetch track-specific session data
         track_df = data_service.get_track_performance(event_id)
-        if track_df.empty:
+        if is_data_empty(track_df):
             st.warning("No data available for this track.")
-            return
+            return pd.DataFrame()
 
         # Create visualization tabs
         tab1, tab2, tab3, tab4 = st.tabs(["Driver Performance", "Tire Usage", "Weather Impact", "Telemetry Trends"])

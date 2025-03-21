@@ -43,7 +43,7 @@ def overtakes_analysis():
 
         # Detect overtakes dynamically
         overtakes_df = detect_overtakes(session_id)
-        if overtakes_df.empty:
+        if not overtakes_df or (isinstance(overtakes_df, pd.DataFrame) and overtakes_df.empty):
             st.warning("No overtakes detected for this session.")
             return
 
@@ -73,7 +73,9 @@ def detect_overtakes(session_id):
     Detect overtakes based on position changes between consecutive laps.
     """
     laps_df = data_service.get_lap_times(session_id)
-    if laps_df.empty:
+    if isinstance(laps_df, pd.DataFrame) and laps_df.empty:
+        return pd.DataFrame()
+    elif not isinstance(laps_df, pd.DataFrame) and not laps_df:  # Empty list or None
         return pd.DataFrame()
 
     # Sort laps by lap number and driver
@@ -89,7 +91,8 @@ def detect_overtakes(session_id):
 
     # Fetch sector & DRS usage
     telemetry_df = data_service.get_telemetry(session_id)
-    if not telemetry_df.empty:
+    if not telemetry_df or (isinstance(telemetry_df, pd.DataFrame) and telemetry_df.empty):
+        st.warning("No telemetry data.")
         telemetry_df["drs_used"] = telemetry_df["drs"].diff() > 0
         overtakes_df = overtakes_df.merge(telemetry_df[["driver_id", "lap_number", "sector", "drs_used"]], on=["driver_id", "lap_number"], how="left")
 

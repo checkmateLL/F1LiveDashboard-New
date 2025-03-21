@@ -12,6 +12,12 @@ from backend.error_handling import DatabaseError, ResourceNotFoundError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def telemetry():
     """Telemetry Analysis Dashboard."""
     st.title("📡 Telemetry Analysis")
@@ -57,17 +63,17 @@ def telemetry():
 
         # Get lap numbers
         laps_df = data_service.get_lap_numbers(session_id, driver_id)
-        if laps_df.empty:
+        if is_data_empty(laps_df):
             st.warning("No lap data available.")
-            return
+            return pd.DataFrame()
 
         selected_lap = st.selectbox("Select Lap", sorted(laps_df["lap_number"].tolist()))
 
         # Fetch telemetry data
         telemetry_df = data_service.get_telemetry(session_id, driver_id, selected_lap, use_distance=True)
-        if telemetry_df.empty:
+        if is_data_empty(telemetry_df):
             st.warning("No telemetry available.")
-            return
+            return pd.DataFrame()
 
         # Driver comparison
         st.subheader("Driver Comparison")

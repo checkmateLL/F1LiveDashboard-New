@@ -58,7 +58,12 @@ def performance():
     
     except Exception as e:
         st.error(f"Error loading performance analysis: {e}") 
-   
+
+def is_data_empty(data):
+    """Check if data is empty, whether it's a DataFrame or list/dict."""
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data) 
 
 def show_driver_performance(db, year):
     """Analyze and visualize driver performance metrics."""
@@ -77,9 +82,9 @@ def show_driver_performance(db, year):
         params=(year,)
     )
     
-    if drivers_df.empty:
+    if is_data_empty(drivers_df):
         st.info("No driver data available for this season.")
-        return
+        return pd.DataFrame()
     
     # Select drivers to compare
     selected_drivers = st.multiselect(
@@ -232,7 +237,13 @@ def show_driver_performance(db, year):
                     params=(driver_id, year)
                 )
                 
-                if not race_results.empty:
+                if not is_data_empty(race_results):
+                    if not isinstance(race_results, pd.DataFrame) and isinstance(race_results, (list, dict)):
+                        try:
+                            race_results = pd.DataFrame(race_results)
+                        except Exception as e:
+                            st.warning(f"Could not process race results: {e}")
+                            return
                     # Create individual trend chart
                     fig = go.Figure()
                     
@@ -284,9 +295,9 @@ def show_team_performance(db, year):
         params=(year,)
     )
     
-    if teams_df.empty:
+    if is_data_empty(teams_df):
         st.info("No team data available for this season.")
-        return
+        return pd.DataFrame()
     
     # Select teams to compare
     selected_teams = st.multiselect(
@@ -439,7 +450,13 @@ def show_team_performance(db, year):
             params=(year,)
         )
         
-        if not events.empty:
+        if not is_data_empty(events):
+            if not isinstance(events, pd.DataFrame) and isinstance(events, (list, dict)):
+                try:
+                    events = pd.DataFrame(events)
+                except Exception as e:
+                    st.warning(f"Could not process race events: {e}")
+                    return
             # Track cumulative points for each team
             team_progress = []
             
@@ -510,7 +527,13 @@ def show_team_performance(db, year):
                     team_data = progress_df[progress_df['Team'] == team]
                     team_data = team_data[team_data['Round'] <= max_round].sort_values('Round')
                     
-                    if not team_data.empty:
+                    if not is_data_empty(team_data):
+                        if not isinstance(team_data, pd.DataFrame) and isinstance(team_data, (list, dict)):
+                            try:
+                                team_data = pd.DataFrame(team_data)
+                            except Exception as e:
+                                st.warning(f"Could not process team data: {e}")
+                                return
                         color = add_hash_to_color(team_data['Color'].iloc[0])
                         
                         fig.add_trace(go.Scatter(
@@ -579,9 +602,9 @@ def show_tire_strategy(db, year):
         params=(event_id,)
     )
     
-    if race_session.empty:
+    if is_data_empty(race_session):
         st.info("No race session available for this event.")
-        return
+        return pd.DataFrame()
     
     session_id = race_session['id'].iloc[0]
     
@@ -600,9 +623,9 @@ def show_tire_strategy(db, year):
         params=(session_id,)
     )
     
-    if tire_data.empty:
+    if is_data_empty(tire_data):
         st.info("No tire strategy data available for this race.")
-        return
+        return pd.DataFrame
     
     # Visualize tire usage by driver
     st.subheader(f"Tire Usage in {selected_event}")
@@ -677,7 +700,13 @@ def show_tire_strategy(db, year):
         params=(session_id,)
     )
     
-    if not stint_data.empty:
+    if not is_data_empty(stint_data):
+        if not isinstance(stint_data, pd.DataFrame) and isinstance(stint_data, (list, dict)):
+            try:
+                stint_data = pd.DataFrame(stint_data)
+            except Exception as e:
+                st.warning(f"Could not process stint data: {e}")
+                return
         # Display stint data
         st.dataframe(
             stint_data.drop('team_color', axis=1),
@@ -743,9 +772,9 @@ def show_pit_stop_analysis(db, year):
         params=(year,)
     )
     
-    if events_with_races.empty:
+    if is_data_empty(events_with_races):
         st.info("No race data available for this season.")
-        return
+        return pd.DataFrame()
     
     # Option to view season-wide analysis or specific race
     analysis_type = st.radio("Analysis Type", ["Season Overview", "Race Specific"])
@@ -765,9 +794,9 @@ def show_pit_stop_analysis(db, year):
             params=(year,)
         )
         
-        if teams_df.empty:
+        if is_data_empty(teams_df):
             st.info("No team data available for this season.")
-            return
+            return pd.DataFrame()
         
         # Get pit stop data across all races
         # This is a simplified version as we don't have actual pit stop timing data
@@ -788,7 +817,7 @@ def show_pit_stop_analysis(db, year):
             params=(year,)
         )
         
-        if not pit_stops_by_team.empty:
+        if not is_data_empty(pit_stops_by_team):
             # Calculate average pit stops per race
             pit_stops_by_team['avg_pit_stops_per_race'] = pit_stops_by_team['pit_stop_count'] / pit_stops_by_team['race_count']
             
@@ -840,9 +869,9 @@ def show_pit_stop_analysis(db, year):
             params=(event_id,)
         )
         
-        if race_session.empty:
+        if is_data_empty(race_session):
             st.info("No race session available for this event.")
-            return
+            return pd.DataFrame()
             
         session_id = race_session['id'].iloc[0]
         
@@ -862,7 +891,7 @@ def show_pit_stop_analysis(db, year):
             params=(session_id,)
         )
         
-        if not driver_pit_stops.empty:
+        if not is_data_empty(driver_pit_stops):
             # Display pit stop data
             st.dataframe(
                 driver_pit_stops.drop('team_color', axis=1),
@@ -907,7 +936,7 @@ def show_pit_stop_analysis(db, year):
                 params=(session_id,)
             )
             
-            if not pit_stop_laps.empty:
+            if not is_data_empty(pit_stop_laps):
                 st.subheader("Pit Stop Timing")
                 
                 # Display pit stop lap data

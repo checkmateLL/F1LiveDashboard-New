@@ -35,8 +35,8 @@ def event_schedule():
 
         # Fetch event sessions
         sessions_df = data_service.get_sessions(event_id)
-        if sessions_df.empty:
-            st.info("No sessions available for this event.")
+        if not sessions_df or (isinstance(sessions_df, pd.DataFrame) and sessions_df.empty):
+            st.warning("No sessions available for this event.")
             return
 
         # Convert dates to datetime and sort them
