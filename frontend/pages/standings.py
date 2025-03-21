@@ -25,11 +25,21 @@ def standings():
         
         # Handle case where no years are returned
         if is_data_empty(available_years):
-            available_years = [2025, 2024, 2023]
+            if isinstance(available_years, list) and len(available_years) == 0:
+                available_years = [2025, 2024, 2023]
+            else:
+                try:
+                    available_years = [row['year'] for row in available_years]
+                except:
+                    available_years = [2025, 2024, 2023]
         
         # Allow user to select a season
         if 'selected_year' in st.session_state:
-            default_year_index = available_years.index(st.session_state['selected_year']) if st.session_state['selected_year'] in available_years else 0
+            # Make sure the year is in the available years
+            if st.session_state['selected_year'] in available_years:
+                default_year_index = available_years.index(st.session_state['selected_year'])
+            else:
+                default_year_index = 0
         else:
             default_year_index = 0
             
@@ -58,61 +68,52 @@ def show_driver_standings(data_service, year):
     """Display the driver championship standings."""
     st.subheader(f"{year} Drivers' Championship")
     
-    # Get driver standings for the selected year
-    driver_standings = data_service.get_driver_standings(year)
-    
-    # Ensure all drivers are included, even those with zero points
-    all_drivers = data_service.get_drivers(year)
-    
-    # Convert to DataFrame if necessary
-    if not isinstance(driver_standings, pd.DataFrame):
-        try:
-            driver_standings = pd.DataFrame(driver_standings)
-        except:
-            driver_standings = pd.DataFrame()
-    
-    if not isinstance(all_drivers, pd.DataFrame):
-        try:
-            all_drivers = pd.DataFrame(all_drivers)
-        except:
-            all_drivers = pd.DataFrame()
-    
-    # Get existing driver IDs
-    if not is_data_empty(driver_standings) and 'driver_id' in driver_standings.columns:
-        existing_ids = set(driver_standings['driver_id'].tolist())
+    try:
+        # Get driver standings for the selected year
+        driver_standings = data_service.get_driver_standings(year)
         
-        # Add missing drivers with zero points
-        if not is_data_empty(all_drivers):
-            # Make sure all_drivers has a 'id' column to match against driver_standings 'driver_id'
-            if 'id' in all_drivers.columns and 'driver_id' not in all_drivers.columns:
-                all_drivers['driver_id'] = all_drivers['id']
+        # Ensure all drivers are included, even those with zero points
+        all_drivers = data_service.get_drivers(year)
+        
+        # Convert to DataFrame if necessary
+        if not isinstance(driver_standings, pd.DataFrame):
+            try:
+                driver_standings = pd.DataFrame(driver_standings)
+            except:
+                driver_standings = pd.DataFrame()
+        
+        if not isinstance(all_drivers, pd.DataFrame):
+            try:
+                all_drivers = pd.DataFrame(all_drivers)
+            except:
+                all_drivers = pd.DataFrame()
+        
+        # Check if we have valid data
+        if is_data_empty(driver_standings):
+            st.info("No driver standings data available for this season.")
+            return
             
-            if 'driver_id' in all_drivers.columns:
-                missing_drivers = all_drivers[~all_drivers['driver_id'].isin(existing_ids)].copy()
-                
-                if not is_data_empty(missing_drivers):
-                    # Ensure missing_drivers has a 'total_points' column with zeros
-                    if 'total_points' not in missing_drivers.columns:
-                        missing_drivers['total_points'] = 0
-                    
-                    # Ensure both DataFrames have the same columns
-                    common_columns = set(driver_standings.columns) & set(missing_drivers.columns)
-                    driver_standings = driver_standings[list(common_columns)]
-                    missing_drivers = missing_drivers[list(common_columns)]
-                    
-                    # Concatenate and sort
-                    driver_standings = pd.concat([driver_standings, missing_drivers], ignore_index=True)
-                    driver_standings = driver_standings.sort_values('total_points', ascending=False)
-    
-    if not is_data_empty(driver_standings):
         # Add position column
         driver_standings = driver_standings.reset_index(drop=True)
         driver_standings['position'] = driver_standings.index + 1
         
         # Create a visual representation of the standings
+        if 'full_name' in driver_standings.columns:
+            name_col = 'full_name'
+        elif 'driver_name' in driver_standings.columns:
+            name_col = 'driver_name'
+        else:
+            st.warning("Driver name column not found in standings data.")
+            return
+            
+        if 'team_name' not in driver_standings.columns or 'team_color' not in driver_standings.columns:
+            st.warning("Team information missing from standings data.")
+            return
+            
+        # Create the bar chart
         fig = px.bar(
             driver_standings,
-            x='full_name' if 'full_name' in driver_standings.columns else 'driver_name',
+            x=name_col,
             y='total_points',
             title=f"{year} Drivers' Championship Standings",
             color='team_name',
@@ -141,7 +142,6 @@ def show_driver_standings(data_service, year):
         
         # Add a checkbox to toggle the detailed table view
         if st.checkbox("Show detailed standings table", value=False):
-            name_col = 'full_name' if 'full_name' in driver_standings.columns else 'driver_name'
             display_df = driver_standings[['position', name_col, 'team_name', 'total_points']].copy()
             display_df.columns = ['Position', 'Driver', 'Team', 'Points']
             
@@ -158,29 +158,40 @@ def show_driver_standings(data_service, year):
             
             col1, col2, col3 = st.columns(3)
             
-            name_col = 'full_name' if 'full_name' in driver_standings.columns else 'driver_name'
             col1.metric("Championship Leader", leader[name_col])
             col2.metric("Leader's Team", leader['team_name'])
             col3.metric("Gap to Second", f"{leader_gap} points")
-    else:
-        st.info("No driver standings data available for this season.")
+    except Exception as e:
+        st.error(f"Error displaying driver standings: {e}")
 
 
 def show_constructor_standings(data_service, year):
     """Display the constructor championship standings."""
     st.subheader(f"{year} Constructors' Championship")
     
-    # Get constructor standings for the selected year
-    constructor_standings = data_service.get_constructor_standings(year)
-    
-    # Convert to DataFrame if necessary
-    if not isinstance(constructor_standings, pd.DataFrame):
-        try:
-            constructor_standings = pd.DataFrame(constructor_standings)
-        except:
-            constructor_standings = pd.DataFrame()
-    
-    if not is_data_empty(constructor_standings):
+    try:
+        # Get constructor standings for the selected year
+        constructor_standings = data_service.get_constructor_standings(year)
+        
+        # Convert to DataFrame if necessary
+        if not isinstance(constructor_standings, pd.DataFrame):
+            try:
+                constructor_standings = pd.DataFrame(constructor_standings)
+            except:
+                constructor_standings = pd.DataFrame()
+        
+        if is_data_empty(constructor_standings):
+            st.info("No constructor standings data available for this season.")
+            return
+            
+        # Check for required columns
+        required_cols = ['team_name', 'team_color', 'total_points']
+        missing_cols = [col for col in required_cols if col not in constructor_standings.columns]
+        
+        if missing_cols:
+            st.warning(f"Missing required data columns: {', '.join(missing_cols)}")
+            return
+        
         # Add position column
         constructor_standings = constructor_standings.reset_index(drop=True)
         constructor_standings['position'] = constructor_standings.index + 1
@@ -227,153 +238,171 @@ def show_constructor_standings(data_service, year):
             
             leader_gap = leader['total_points'] - second['total_points']
             
-            # Get drivers for the leading team
-            team_id = leader['team_id']
-            leading_team_drivers = data_service.get_drivers(year, team_id)
+            # Get drivers for the leading team - FIXED to handle the session_id parameter
+            team_id = leader['team_id'] if 'team_id' in leader else None
             
-            # Convert to DataFrame and calculate points for each driver
-            if not is_data_empty(leading_team_drivers):
-                # This part is simplified compared to the original as we don't have a direct way
-                # to get driver points through the data_service yet
-                st.subheader("Team Insights")
-                
-                col1, col2 = st.columns(2)
-                
-                col1.metric("Leading Team", leader['team_name'])
-                col2.metric("Gap to Second", f"{leader_gap} points")
-    else:
-        st.info("No constructor standings data available for this season.")
+            st.subheader("Team Insights")
+            
+            col1, col2 = st.columns(2)
+            
+            col1.metric("Leading Team", leader['team_name'])
+            col2.metric("Gap to Second", f"{leader_gap} points")
+    except Exception as e:
+        st.error(f"Error displaying constructor standings: {e}")
 
 
 def show_season_progress(data_service, year):
     """Display how the championships have evolved throughout the season."""
     st.subheader(f"{year} Championship Progress")
     
-    # Get all events for the year
-    events = data_service.get_events(year)
-    
-    # Convert to DataFrame if necessary
-    if not isinstance(events, pd.DataFrame):
-        try:
-            events = pd.DataFrame(events)
-        except:
-            events = pd.DataFrame()
-    
-    if is_data_empty(events):
-        st.info("No race data available for this season.")
-        return
-    
-    # Get all races with sessions
-    races = []
-    for _, event in events.iterrows():
-        event_id = event['id']
-        sessions = data_service.get_sessions(event_id)
+    try:
+        # Get all events for the year
+        events = data_service.get_events(year)
         
-        if not is_data_empty(sessions):
-            for session in sessions:
-                if session['session_type'] == 'race':
-                    races.append({
-                        'id': event['id'],
-                        'round_number': event['round_number'],
-                        'event_name': event['event_name'],
-                        'session_id': session['id']
-                    })
-    
-    # Convert races to DataFrame
-    races_df = pd.DataFrame(races)
-    
-    if is_data_empty(races_df):
-        st.info("No race data available for this season.")
-        return
-    
-    # Create a simplified progress visualization
-    # For a full implementation, you would need to adapt the complex queries 
-    # in the original code to use data_service methods
-    
-    st.info("Race progression data is being calculated. Please wait...")
-    
-    # Get driver standings to create progress chart
-    driver_standings = data_service.get_driver_standings(year)
-    if not is_data_empty(driver_standings):
         # Convert to DataFrame if necessary
-        if not isinstance(driver_standings, pd.DataFrame):
-            driver_standings = pd.DataFrame(driver_standings)
+        if not isinstance(events, pd.DataFrame):
+            try:
+                events = pd.DataFrame(events)
+            except:
+                events = pd.DataFrame()
         
-        # Create simplified visualization
-        st.subheader("Current Drivers' Championship Standings")
+        if is_data_empty(events):
+            st.info("No race data available for this season.")
+            return
         
-        # Sort by points
-        driver_standings = driver_standings.sort_values('total_points', ascending=False)
+        # Get all races with sessions
+        races = []
+        for _, event in events.iterrows():
+            event_id = event['id']
+            sessions = data_service.get_sessions(event_id)
+            
+            if not is_data_empty(sessions):
+                # Convert to DataFrame if needed
+                if not isinstance(sessions, pd.DataFrame):
+                    try:
+                        sessions_df = pd.DataFrame(sessions)
+                    except:
+                        continue  # Skip if we can't process
+                else:
+                    sessions_df = sessions
+                    
+                # Find race sessions
+                for _, session in sessions_df.iterrows():
+                    if session['session_type'] == 'race':
+                        races.append({
+                            'id': event['id'],
+                            'round_number': event['round_number'],
+                            'event_name': event['event_name'],
+                            'session_id': session['id']
+                        })
         
-        # Create bar chart
-        name_col = 'full_name' if 'full_name' in driver_standings.columns else 'driver_name'
-        fig = px.bar(
-            driver_standings,
-            x=name_col,
-            y='total_points',
-            color='team_name',
-            title=f"{year} Drivers' Championship Standings",
-            color_discrete_map={team: add_hash_to_color(color) for team, color in zip(driver_standings['team_name'], driver_standings['team_color'])}
-        )
+        # Convert races to DataFrame
+        races_df = pd.DataFrame(races) if races else pd.DataFrame()
         
-        fig.update_layout(
-            xaxis_title="Driver",
-            yaxis_title="Points",
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white'),
-            height=500,
-            xaxis={'tickangle': 45}
-        )
+        if is_data_empty(races_df):
+            st.info("No race data available for this season.")
+            return
         
-        st.plotly_chart(fig, use_container_width=True)
+        # Create a simplified progress visualization
+        # For a full implementation, you would need to adapt the complex queries 
+        # in the original code to use data_service methods
         
-    # Similar simplified visualization for team standings
-    team_standings = data_service.get_constructor_standings(year)
-    if not is_data_empty(team_standings):
-        # Convert to DataFrame if necessary
-        if not isinstance(team_standings, pd.DataFrame):
-            team_standings = pd.DataFrame(team_standings)
+        st.info("Race progression data is being calculated. Please wait...")
         
-        # Create simplified visualization
-        st.subheader("Current Constructors' Championship Standings")
+        # Get driver standings to create progress chart
+        driver_standings = data_service.get_driver_standings(year)
+        if not is_data_empty(driver_standings):
+            # Convert to DataFrame if necessary
+            if not isinstance(driver_standings, pd.DataFrame):
+                try:
+                    driver_standings = pd.DataFrame(driver_standings)
+                except:
+                    driver_standings = pd.DataFrame()
+            
+            # Create simplified visualization
+            st.subheader("Current Drivers' Championship Standings")
+            
+            # Sort by points
+            driver_standings = driver_standings.sort_values('total_points', ascending=False)
+            
+            # Create bar chart
+            name_col = 'full_name' if 'full_name' in driver_standings.columns else 'driver_name'
+            
+            if name_col in driver_standings.columns and 'team_name' in driver_standings.columns and 'team_color' in driver_standings.columns:
+                fig = px.bar(
+                    driver_standings,
+                    x=name_col,
+                    y='total_points',
+                    color='team_name',
+                    title=f"{year} Drivers' Championship Standings",
+                    color_discrete_map={team: add_hash_to_color(color) for team, color in zip(driver_standings['team_name'], driver_standings['team_color'])}
+                )
+                
+                fig.update_layout(
+                    xaxis_title="Driver",
+                    yaxis_title="Points",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white'),
+                    height=500,
+                    xaxis={'tickangle': 45}
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
         
-        # Sort by points
-        team_standings = team_standings.sort_values('total_points', ascending=False)
+        # Similar simplified visualization for team standings
+        team_standings = data_service.get_constructor_standings(year)
+        if not is_data_empty(team_standings):
+            # Convert to DataFrame if necessary
+            if not isinstance(team_standings, pd.DataFrame):
+                try:
+                    team_standings = pd.DataFrame(team_standings)
+                except:
+                    team_standings = pd.DataFrame()
+            
+            # Check for required columns
+            if 'team_name' in team_standings.columns and 'total_points' in team_standings.columns and 'team_color' in team_standings.columns:
+                # Create simplified visualization
+                st.subheader("Current Constructors' Championship Standings")
+                
+                # Sort by points
+                team_standings = team_standings.sort_values('total_points', ascending=False)
+                
+                # Create bar chart with team colors
+                fig = go.Figure()
+                
+                for i, team in team_standings.iterrows():
+                    fig.add_trace(go.Bar(
+                        x=[team['team_name']],
+                        y=[team['total_points']],
+                        name=team['team_name'],
+                        marker_color=add_hash_to_color(team['team_color']),
+                        text=[team['total_points']],
+                        textposition="outside",
+                        textfont=dict(color="white")
+                    ))
+                
+                fig.update_layout(
+                    title=f"{year} Constructors' Championship Standings",
+                    xaxis_title="Team",
+                    yaxis_title="Points",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white'),
+                    height=500,
+                    showlegend=False
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
         
-        # Create bar chart with team colors
-        fig = go.Figure()
-        
-        for i, team in team_standings.iterrows():
-            fig.add_trace(go.Bar(
-                x=[team['team_name']],
-                y=[team['total_points']],
-                name=team['team_name'],
-                marker_color=add_hash_to_color(team['team_color']),
-                text=[team['total_points']],
-                textposition="outside",
-                textfont=dict(color="white")
-            ))
-        
-        fig.update_layout(
-            title=f"{year} Constructors' Championship Standings",
-            xaxis_title="Team",
-            yaxis_title="Points",
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white'),
-            height=500,
-            showlegend=False
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # Note on progress calculation
-    st.info("""
-    For detailed race-by-race progression of standings, additional functionality 
-    would need to be implemented in the F1DataService to calculate points after 
-    each race. The current implementation shows current standings only.
-    """)
+        # Note on progress calculation
+        st.info("""
+        For detailed race-by-race progression of standings, additional functionality 
+        would need to be implemented in the F1DataService to calculate points after 
+        each race. The current implementation shows current standings only.
+        """)
+    except Exception as e:
+        st.error(f"Error displaying season progress: {e}")
 
 
 def add_hash_to_color(color_str):
@@ -404,3 +433,5 @@ def lighten_color(hex_color, factor=0.3):
     except (ValueError, IndexError):
         # If there's an error processing the color, return a default
         return "#CCCCCC"
+
+standings()

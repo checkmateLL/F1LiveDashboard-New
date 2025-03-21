@@ -25,6 +25,7 @@ def create_navbar():
         .nav-container {
             display: flex; justify-content: center; gap: 10px;
             background-color: #16171d; padding: 10px; border-radius: 8px;
+            margin-bottom: 15px;
         }
         .nav-button {
             background-color: #e10600; color: white; font-weight: bold;
@@ -34,20 +35,59 @@ def create_navbar():
         .nav-button:hover {
             background-color: #b80500;
         }
+        .nav-button-selected {
+            background-color: #b80500; color: white; font-weight: bold;
+            border: none; border-radius: 5px; padding: 10px 20px;
+            cursor: pointer;
+        }
     </style>
     """, unsafe_allow_html=True)
 
-    # Create horizontal navbar
+    # Create HTML for navigation bar
+    nav_html = '<div class="nav-container">'
+    
     selected = None
+    for label, page in nav_items.items():
+        # Check if this is the currently selected page
+        button_class = "nav-button-selected" if page == st.session_state["current_page"] else "nav-button"
+        
+        # Add button with unique key
+        button_id = f"nav_btn_{page.replace(' ', '_')}"
+        nav_html += f'<button class="{button_class}" id="{button_id}" onclick="setPage(\'{page}\')">{label}</button>'
+    
+    nav_html += '</div>'
+    
+    # JavaScript to handle button clicks
+    js = """
+    <script>
+    function setPage(page) {
+        // Update session state via form submission
+        const data = new FormData();
+        data.append('current_page', page);
+        fetch('/', {
+            method: 'POST',
+            body: data
+        }).then(() => {
+            // Reload page to reflect change
+            window.location.reload();
+        });
+    }
+    </script>
+    """
+    
+    # Combine HTML and JavaScript
+    st.markdown(nav_html + js, unsafe_allow_html=True)
+    
+    # Create individual buttons as fallback for the JavaScript method
     cols = st.columns(len(nav_items))
-
     for idx, (label, page) in enumerate(nav_items.items()):
-        if cols[idx].button(label, key=f"nav_{page}"):
+        if cols[idx].button(label, key=f"nav_{page}", help=f"Navigate to {page}"):
             selected = page
 
-    # Store selected page in session state
+    # If a button was clicked, update the session state
     if selected:
         st.session_state["current_page"] = selected
+        st.rerun()  # Force page to rerun with new selection
     else:
         selected = st.session_state["current_page"]  # Default to last selected page
 

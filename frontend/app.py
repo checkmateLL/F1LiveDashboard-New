@@ -5,8 +5,6 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import streamlit as st
-
-
 from backend.error_handling import ValidationError, DatabaseError
 from frontend.components.navbar import create_navbar
 from frontend.pages.home import home
@@ -81,6 +79,26 @@ st.sidebar.title("F1 Dashboard")
 # Persistent Top Navigation
 page = create_navbar()
 st.session_state["current_page"] = page  # Store current page in session state
+
+# Create sidebar navigation as well
+pages = [
+    "Home", 
+    "Event Schedule", 
+    "Race Analysis", 
+    "Race Replay", 
+    "Season Overview", 
+    "Race Results", 
+    "Lap Times", 
+    "Standings", 
+    "Performance Analysis"
+]
+
+selected_page = st.sidebar.radio("Navigation", pages, index=pages.index(st.session_state["current_page"]))
+
+# Ensure both navigation systems sync
+if selected_page != st.session_state["current_page"]:
+    st.session_state["current_page"] = selected_page
+    page = selected_page
 
 # Load the selected page dynamically
 page_mapping = {
