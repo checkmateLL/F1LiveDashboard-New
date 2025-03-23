@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 
@@ -12,72 +11,74 @@ data_service = F1DataService()
 
 st.title("⏱ Lap Times Analysis")
 
+
 def lap_times():
-    """Main function to display lap times analysis."""
     try:
-        # Get available years
         years = data_service.get_available_years()
-        
-        # Determine default year from session state
         default_year = st.session_state.get("selected_year", years[0])
         year = st.selectbox("Select Season", options=years, index=years.index(default_year), key="laptimes_year")
         st.session_state["selected_year"] = year
 
-        # Get events for the selected season
         events = data_service.get_events(year)
         event_options = {event["event_name"]: event["id"] for event in events}
-        
-        if not events or len(events) == 0:
+
+        if not events:
             st.warning("No events available.")
             return
-        
-        # Determine default event from session state
-        default_event = st.session_state.get("selected_event", next(iter(event_options.values())))        
-        selected_event = st.selectbox("Select Event", options=event_options.keys(), 
-                              index=list(event_options.values()).index(default_event),
-                              key="laptimes_event")
+
+        default_event = st.session_state.get("selected_event", next(iter(event_options.values())))
+        if default_event not in event_options.values():
+            default_event = next(iter(event_options.values()))
+
+        selected_event = st.selectbox("Select Event", options=event_options.keys(),
+                                      index=list(event_options.values()).index(default_event),
+                                      key="laptimes_event")
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
 
-        # Get sessions for the selected event
         sessions = data_service.get_sessions(event_id)
         session_options = {session["name"]: session["id"] for session in sessions}
-        
+
         if not sessions:
             st.warning("No sessions available for this event.")
             return
-        
-        # Determine default session from session state
+
         default_session = st.session_state.get("selected_session", next(iter(session_options.values())))
-        selected_session = st.selectbox("Select Session", options=session_options.keys(), index=list(session_options.keys()).index(default_session))
+        if default_session not in session_options.values():
+            default_session = next(iter(session_options.values()))
+
+        selected_session = st.selectbox("Select Session", options=session_options.keys(),
+                                        index=list(session_options.values()).index(default_session),
+                                        key="laptimes_session")
         session_id = session_options[selected_session]
         st.session_state["selected_session"] = session_id
 
-        # Load lap times data
         laps_df = data_service.get_lap_times(session_id)
-        if not laps_df or (isinstance(laps_df, pd.DataFrame) and laps_df.empty):
+        laps_df = pd.DataFrame(laps_df) if laps_df else pd.DataFrame()
+        if laps_df.empty:
             st.warning("No lap time data available for this session.")
             return
 
-        # Convert lap and sector times to seconds
         laps_df["lap_time_sec"] = laps_df["lap_time"].apply(convert_time_to_seconds)
         laps_df["sector1_sec"] = laps_df["sector1_time"].apply(convert_time_to_seconds)
         laps_df["sector2_sec"] = laps_df["sector2_time"].apply(convert_time_to_seconds)
         laps_df["sector3_sec"] = laps_df["sector3_time"].apply(convert_time_to_seconds)
 
-        # Create tabs for different analyses
-        tab1, tab2, tab3, tab4 = st.tabs(["Lap Times", "Sector Analysis", "Tire Strategy", "Driver Comparison"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Lap Times", "Fastest Laps", "Sector Analysis", "Tire Analysis", "Driver Comparison"])
 
         with tab1:
             show_lap_time_analysis(laps_df)
 
         with tab2:
-            show_sector_analysis(laps_df)
+            show_fastest_laps(laps_df)
 
         with tab3:
-            show_tire_analysis(laps_df)
+            show_sector_analysis(laps_df)
 
         with tab4:
+            show_tire_analysis(laps_df)
+
+        with tab5:
             show_driver_comparison(laps_df)
 
     except (DatabaseError, ResourceNotFoundError) as e:
@@ -86,152 +87,15 @@ def lap_times():
         st.error(f"Unexpected error: {e}")
 
 def convert_time_to_seconds(time_str):
-    """Convert lap time strings to seconds."""
-    if not time_str or pd.isna(time_str):
-        return None
-
     try:
-        parts = time_str.split()
-        if len(parts) >= 3:
-            time_part = parts[2]
-            if ":" in time_part:
-                time_sections = time_part.split(":")
-                if len(time_sections) == 3:  # hours:minutes:seconds
-                    return int(time_sections[0]) * 3600 + int(time_sections[1]) * 60 + float(time_sections[2])
-                elif len(time_sections) == 2:  # minutes:seconds
-                    return int(time_sections[0]) * 60 + float(time_sections[1])
-        
+        if pd.isna(time_str):
+            return None
+        if ':' in time_str:
+            minutes, seconds = map(float, time_str.split(':'))
+            return minutes * 60 + seconds
         return float(time_str)
-    except (ValueError, IndexError, TypeError):
+    except:
         return None
-
-def show_lap_time_analysis(laps_df):
-    """Show lap time analysis visualization."""
-    st.subheader("Lap Time Analysis")
-    
-    # Sidebar filters
-    st.sidebar.subheader("Lap Time Filters")
-    
-    # Get unique drivers
-    drivers = laps_df["driver_name"].unique().tolist()
-    
-    # Allow user to select drivers
-    selected_drivers = st.sidebar.multiselect("Select Drivers", drivers, default=drivers[:5] if len(drivers) > 5 else drivers)
-    
-    # Filter for deleted laps
-    include_deleted = st.sidebar.checkbox("Include Deleted Laps", value=False)
-    
-    # Apply filters
-    filtered_df = laps_df[laps_df["driver_name"].isin(selected_drivers)]
-    if not include_deleted:
-        filtered_df = filtered_df[~(filtered_df["deleted"] == 1)]
-    
-    if not filtered_df or (isinstance(filtered_df, pd.DataFrame) and filtered_df.empty):
-        st.warning("No data available with the current filters.")
-        return
-    
-    # Create lap time visualization
-    fig = go.Figure()
-    
-    # Add a line for each driver
-    for driver in selected_drivers:
-        driver_data = filtered_df[filtered_df["driver_name"] == driver]
-        if not driver_data or (isinstance(driver_data, pd.DataFrame) and driver_data.empty):
-            st.warning("No driver data available.")
-            team_color = driver_data["team_color"].iloc[0]
-            
-            fig.add_trace(go.Scatter(
-                x=driver_data["lap_number"],
-                y=driver_data["lap_time_sec"],
-                mode="lines+markers",
-                name=driver,
-                line=dict(color=team_color, width=2),
-                marker=dict(
-                    size=8,
-                    color=team_color,
-                    symbol="circle"
-                ),
-                hovertemplate=(
-                    f"Driver: {driver}<br>"
-                    "Lap: %{x}<br>"
-                    "Time: %{y:.3f}s<br>"
-                    "Tire: %{customdata[0]}<br>"
-                    "Tire Life: %{customdata[1]}"
-                ),
-                customdata=np.column_stack((
-                    driver_data["compound"], 
-                    driver_data["tyre_life"]
-                ))
-            ))
-    
-    # Update layout
-    fig.update_layout(
-        title="Lap Times Evolution",
-        xaxis_title="Lap Number",
-        yaxis_title="Lap Time (seconds)",
-        yaxis=dict(autorange="reversed"),  # Lower times at the top
-        hovermode="closest",
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="white"),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        ),
-        height=500
-    )
-    
-    # Update y-axis to show time in a readable format
-    fig.update_yaxes(
-        tickvals=[60, 90, 120, 150, 180],
-        ticktext=["1:00", "1:30", "2:00", "2:30", "3:00"]
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Show fastest laps
-    st.subheader("Fastest Laps")
-    
-    # Get fastest lap for each driver
-    fastest_laps = []
-    for driver in selected_drivers:
-        driver_data = filtered_df[filtered_df["driver_name"] == driver]
-        if not driver_data.empty and not driver_data["lap_time_sec"].isna().all():
-            fastest_lap = driver_data.loc[driver_data["lap_time_sec"].idxmin()]
-            fastest_laps.append({
-                "Driver": fastest_lap["driver_name"],
-                "Lap": int(fastest_lap["lap_number"]),
-                "Time": format_seconds_to_time(fastest_lap["lap_time_sec"]),
-                "Time_Sec": fastest_lap["lap_time_sec"],
-                "Compound": fastest_lap["compound"],
-                "Tire Life": int(fastest_lap["tyre_life"]) if pd.notna(fastest_lap["tyre_life"]) else None,
-                "Team": fastest_lap["team_name"]
-            })
-    
-    if fastest_laps:
-        # Sort by lap time
-        fastest_laps_df = pd.DataFrame(fastest_laps).sort_values("Time_Sec")
-        
-        # Calculate delta to fastest
-        if not fastest_laps_df or (isinstance(fastest_laps_df, pd.DataFrame) and fastest_laps_df.empty):
-            st.warning("No delta for fastest lap available!")
-            fastest_time = fastest_laps_df["Time_Sec"].min()
-            fastest_laps_df["Delta"] = fastest_laps_df["Time_Sec"].apply(
-                lambda x: f"+{(x - fastest_time):.3f}s" if x > fastest_time else "Leader"
-            )
-        
-        # Display dataframe without the Time_Sec column
-        st.dataframe(
-            fastest_laps_df.drop("Time_Sec", axis=1),
-            use_container_width=True,
-            hide_index=True
-        )
-    else:
-        st.info("No valid lap times to display.")
-
 
 def show_sector_analysis(laps_df):
     """Show sector time analysis visualization."""
@@ -356,7 +220,6 @@ def show_sector_analysis(laps_df):
         )
     else:
         st.info(f"No valid {sector} times to display.")
-
 
 def show_tire_analysis(laps_df):
     """Show tire and stint analysis visualization."""
@@ -497,7 +360,6 @@ def show_tire_analysis(laps_df):
     else:
         st.info("No valid stint data to display.")
 
-
 def show_driver_comparison(laps_df):
     """Show driver comparison visualization."""
     st.subheader("Driver Comparison")
@@ -632,12 +494,64 @@ def show_driver_comparison(laps_df):
     else:
         st.info("No common laps available for comparison.")
 
+def show_lap_time_analysis(laps_df):
+    st.subheader("Lap Time Analysis")
+
+    drivers = laps_df["driver_name"].unique().tolist()
+    selected_drivers = st.multiselect("Select Drivers", drivers, default=drivers[:5])
+
+    filtered_df = laps_df[laps_df["driver_name"].isin(selected_drivers)]
+    if filtered_df.empty:
+        st.warning("No data available with the current filters.")
+        return
+
+    fig = go.Figure()
+
+    for driver in selected_drivers:
+        driver_data = filtered_df[filtered_df["driver_name"] == driver]
+        if not driver_data.empty:
+            fig.add_trace(go.Scatter(
+                x=driver_data["lap_number"],
+                y=driver_data["lap_time_sec"],
+                mode="lines+markers",
+                name=driver
+            ))
+
+    fig.update_layout(
+        title="Lap Times Evolution",
+        xaxis_title="Lap Number",
+        yaxis_title="Lap Time (seconds)",
+        yaxis=dict(autorange="reversed"),
+        hovermode="closest"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_fastest_laps(laps_df):
+    st.subheader("Fastest Laps")
+
+    drivers = laps_df["driver_name"].unique().tolist()
+    fastest_laps = []
+
+    for driver in drivers:
+        driver_data = laps_df[laps_df["driver_name"] == driver]
+        if not driver_data.empty:
+            fastest_lap = driver_data.loc[driver_data["lap_time_sec"].idxmin()]
+            fastest_laps.append({
+                "Driver": fastest_lap["driver_name"],
+                "Lap": int(fastest_lap["lap_number"]),
+                "Time": format_seconds_to_time(fastest_lap["lap_time_sec"])
+            })
+
+    if fastest_laps:
+        fastest_laps_df = pd.DataFrame(fastest_laps).sort_values("Time")
+        st.dataframe(fastest_laps_df, use_container_width=True, hide_index=True)
+    else:
+        st.info("No valid lap times to display.")
 
 def format_seconds_to_time(seconds):
-    """Format seconds to MM:SS.ms format, ensuring valid formatting."""
-    if seconds is None or pd.isna(seconds) or seconds < 0:
+    if pd.isna(seconds):
         return "N/A"
-    
     minutes = int(seconds // 60)
     remaining_seconds = seconds % 60
     return f"{minutes:02}:{remaining_seconds:06.3f}"

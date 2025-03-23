@@ -16,6 +16,8 @@ from frontend.pages.performance import performance
 from frontend.pages.race_analysis import race_analysis
 from frontend.pages.race_replay import race_replay
 from frontend.pages.event_schedule import event_schedule
+from frontend.pages.dnf_analysis import dnf_analysis
+from frontend.pages.driver_performance_comparison import get_driver_performance_data
 
 # Set Page Configuration
 st.set_page_config(
@@ -28,6 +30,12 @@ st.set_page_config(
 # Store current page in session state for persistent navigation
 if "current_page" not in st.session_state:
     st.session_state["current_page"] = "Home"
+
+selected_page = create_navbar()
+if selected_page != st.session_state["current_page"]:
+    st.session_state["current_page"] = selected_page
+
+page = st.session_state["current_page"]
 
 # Custom CSS for styling (moved to function for reusability)
 def apply_styles():
@@ -77,8 +85,7 @@ st.sidebar.image("https://www.formula1.com/etc/designs/fom-website/images/f1_log
 st.sidebar.title("F1 Dashboard")
 
 # Persistent Top Navigation
-page = create_navbar()
-st.session_state["current_page"] = page  # Store current page in session state
+  # Store current page in session state
 
 # Create sidebar navigation as well
 pages = [
@@ -90,7 +97,9 @@ pages = [
     "Race Results", 
     "Lap Times", 
     "Standings", 
-    "Performance Analysis"
+    "Performance Analysis",
+    "DNF Analysis",
+    "Driver Performance Data"
 ]
 
 selected_page = st.sidebar.radio("Navigation", pages, index=pages.index(st.session_state["current_page"]))
@@ -110,7 +119,9 @@ page_mapping = {
     "Race Results": race_results,
     "Lap Times": lap_times,
     "Standings": standings,
-    "Performance Analysis": performance
+    "Performance Analysis": performance,
+    "DNF Analysis": dnf_analysis,
+    "Driver Performance Data": get_driver_performance_data
 }
 
 # Call the selected page function if it exists

@@ -1,54 +1,65 @@
 import os
-import sqlite3
-import logging
+import sys
 import time
 import argparse
-
-import fastf1
+import logging
+from typing import Optional
 import pandas as pd
 from tqdm import tqdm
 
-from config import FASTF1_CACHE_DIR  # using your config file
-# Write to a separate database file for full 2025 data:
-SQLITE_FULL_DB_PATH = "./f1_data_full_2025.db"
+import fastf1
+from dotenv import load_dotenv
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from config import FASTF1_CACHE_DIR, SQLITE_DB_PATH
 
-# Ensure the FastF1 cache directory exists.
+load_dotenv()
+
+# -----------------------------------
+# Setup Logging (for migration only)
+# -----------------------------------
+migration_logger = logging.getLogger("migration")
+migration_logger.setLevel(logging.DEBUG)
+
+log_file_path = "migration.log"
+fh = logging.FileHandler(log_file_path, mode='w', encoding='utf-8')
+fh.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+migration_logger.addHandler(fh)
+
+# Also add console handler for better visibility
+ch = logging.StreamHandler()
+ch.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+migration_logger.addHandler(ch)
+
+# -----------------------------------
+# Setup FastF1 Cache
+# -----------------------------------
 if not os.path.exists(FASTF1_CACHE_DIR):
     os.makedirs(FASTF1_CACHE_DIR)
-    logger.info(f"Created cache directory: {FASTF1_CACHE_DIR}")
+    migration_logger.info(f"Created FastF1 cache directory: {FASTF1_CACHE_DIR}")
 
-# Enable the FastF1 cache.
 fastf1.Cache.enable_cache(FASTF1_CACHE_DIR)
+fastf1.set_log_level(logging.INFO)
 
-#############################
-# SQLite Setup and Helpers
-#############################
-
+# -----------------------------------
+# SQLite Client
+# -----------------------------------
 class SQLiteF1Client:
-    def __init__(self, db_path=SQLITE_FULL_DB_PATH):
+    def __init__(self, db_path=SQLITE_DB_PATH):
         self.db_path = db_path
         self.conn = None
         self.cursor = None
-        self.connect()
-        self.create_tables()
 
     def connect(self):
-        try:
-            self.conn = sqlite3.connect(self.db_path)
-            self.conn.row_factory = sqlite3.Row
-            self.cursor = self.conn.cursor()
-            logger.info(f"Connected to SQLite database: {self.db_path}")
-        except sqlite3.Error as e:
-            logger.error(f"Error connecting to SQLite: {e}")
-            raise
+        import sqlite3
+        self.conn = sqlite3.connect(self.db_path)
+        self.conn.row_factory = sqlite3.Row
+        self.cursor = self.conn.cursor()
+        migration_logger.info(f"Connected to SQLite database: {self.db_path}")
 
     def close(self):
         if self.conn:
             self.conn.close()
-            logger.info("Closed SQLite connection")
+            migration_logger.info("Closed SQLite connection")
 
     def commit(self):
         if self.conn:
@@ -227,12 +238,11 @@ class SQLiteF1Client:
                 )
             ''')
             self.commit()
-            logger.info("Created/verified all tables successfully.")
-        except sqlite3.Error as e:
-            logger.error(f"Error creating tables: {e}")
+            migration_logger.info("Created/verified all tables successfully.")
+        except Exception as e:
+            migration_logger.error(f"Error creating tables: {e}")
             raise
 
-    # Insert methods for events and sessions (similar to previous script)
     def insert_event(self, event_data: dict) -> int:
         self.cursor.execute("""
             SELECT id FROM events
@@ -268,15 +278,21 @@ class SQLiteF1Client:
         row = self.cursor.fetchone()
         if row:
             return row['id']
+        
+        # Add the missing fields to handle session data more completely
         self.cursor.execute("""
             INSERT INTO sessions (
-                event_id, name, date, session_type
-            ) VALUES (?, ?, ?, ?)
+                event_id, name, date, session_type,
+                total_laps, session_start_time, t0_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             session_data["event_id"],
             session_data["name"],
             session_data["date"],
-            session_data["session_type"]
+            session_data["session_type"],
+            session_data.get("total_laps"),  # Handle optional fields
+            session_data.get("session_start_time"),
+            session_data.get("t0_date")
         ))
         self.commit()
         return self.cursor.lastrowid
@@ -286,7 +302,7 @@ class SQLiteF1Client:
 #############################
 
 def migrate_events(db: SQLiteF1Client, year: int) -> pd.DataFrame:
-    logger.info(f"Fetching event schedule for {year}")
+    migration_logger.info(f"Fetching event schedule for {year}")
     schedule = fastf1.get_event_schedule(year)
     for idx, ev in schedule.iterrows():
         event_data = {
@@ -336,11 +352,18 @@ def migrate_sessions(db: SQLiteF1Client, schedule: pd.DataFrame, year: int):
                 "event_id": event_id,
                 "name": s_name,
                 "date": s_date_utc.isoformat() if pd.notna(s_date_utc) else None,
-                "session_type": _session_type(s_name)
+                "session_type": _session_type(s_name),
+                "total_laps": None,  # Will be updated later if available
+                "session_start_time": None,  # Will be updated later if available
+                "t0_date": None  # Will be updated later if available
             }
             db.insert_session(s_data)
 
 def migrate_teams_and_drivers(db: SQLiteF1Client, session_obj, year: int):
+    if not hasattr(session_obj, "results") or session_obj.results is None or len(session_obj.results) == 0:
+        migration_logger.warning(f"No results data for session: {session_obj.name}")
+        return
+        
     for _, row in session_obj.results.iterrows():
         team_name = row["TeamName"]
         db.cursor.execute("""
@@ -390,7 +413,9 @@ def migrate_teams_and_drivers(db: SQLiteF1Client, session_obj, year: int):
 
 def migrate_results(db: SQLiteF1Client, session_obj, session_id: int, year: int):
     if not hasattr(session_obj, "results") or session_obj.results is None or len(session_obj.results) == 0:
+        migration_logger.warning(f"No results data for session ID: {session_id}")
         return
+        
     drivers_map = {}
     for _, row in session_obj.results.iterrows():
         abbr = row["Abbreviation"]
@@ -400,16 +425,20 @@ def migrate_results(db: SQLiteF1Client, session_obj, session_id: int, year: int)
         found = db.cursor.fetchone()
         if found:
             drivers_map[abbr] = found["id"]
+    
     for _, row in session_obj.results.iterrows():
         abbr = row["Abbreviation"]
         driver_id = drivers_map.get(abbr)
         if not driver_id:
+            migration_logger.warning(f"No driver found for abbreviation: {abbr}")
             continue
+            
         db.cursor.execute("""
             SELECT id FROM results WHERE session_id = ? AND driver_id = ?
         """, (session_id, driver_id))
         if db.cursor.fetchone():
             continue
+            
         db.cursor.execute("""
             INSERT INTO results (
                 session_id, driver_id, position, classified_position,
@@ -433,25 +462,42 @@ def migrate_results(db: SQLiteF1Client, session_obj, session_id: int, year: int)
 
 def migrate_laps(db: SQLiteF1Client, session_obj, session_id: int, year: int):
     if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+        migration_logger.warning(f"No lap data for session ID: {session_id}")
         return
+        
+    # Create a mapping of drivers for this session
     drivers_map = {}
-    for _, row in session_obj.results.iterrows():
-        abbr = row["Abbreviation"]
+    if hasattr(session_obj, "results") and session_obj.results is not None:
+        for _, row in session_obj.results.iterrows():
+            abbr = row["Abbreviation"]
+            db.cursor.execute("""
+                SELECT id FROM drivers WHERE abbreviation = ? AND year = ?
+            """, (abbr, year))
+            found = db.cursor.fetchone()
+            if found:
+                drivers_map[abbr] = found["id"]
+    
+    # If we couldn't get drivers from results, try to get from drivers table directly
+    if not drivers_map:
         db.cursor.execute("""
-            SELECT id FROM drivers WHERE abbreviation = ? AND year = ?
-        """, (abbr, year))
-        found = db.cursor.fetchone()
-        if found:
-            drivers_map[abbr] = found["id"]
+            SELECT id, abbreviation FROM drivers WHERE year = ?
+        """, (year,))
+        results = db.cursor.fetchall()
+        for row in results:
+            drivers_map[row["abbreviation"]] = row["id"]
+    
     laps_df = session_obj.laps
     for _, lap in tqdm(laps_df.iterrows(), total=len(laps_df), desc="Migrating laps"):
         abbr = lap["Driver"]
         driver_id = drivers_map.get(abbr)
         if not driver_id:
+            migration_logger.warning(f"No driver found for abbreviation: {abbr}")
             continue
+            
         lap_number = int(lap["LapNumber"]) if pd.notna(lap["LapNumber"]) else None
         if not lap_number:
             continue
+            
         db.cursor.execute("""
             SELECT id FROM laps WHERE session_id = ? AND driver_id = ? AND lap_number = ?
         """, (session_id, driver_id, lap_number))
@@ -489,69 +535,84 @@ def migrate_laps(db: SQLiteF1Client, session_obj, session_id: int, year: int):
             "fast_f1_generated": 1 if (pd.notna(lap["FastF1Generated"]) and lap["FastF1Generated"]) else 0,
             "is_accurate": 1 if (pd.notna(lap["IsAccurate"]) and lap["IsAccurate"]) else 0,
             "time": str(lap["Time"]) if pd.notna(lap["Time"]) else None,
-            "session_time": str(lap["SessionTime"]) if "SessionTime" in lap and pd.notna(lap["SessionTime"]) else None
+            "session_time": str(lap["SessionTime"]) if "SessionTime" in lap.index and pd.notna(lap["SessionTime"]) else None
         }
 
         keys = ",".join(lap_data.keys())
         placeholders = ",".join(["?"] * len(lap_data))
         values = list(lap_data.values())
-        db.cursor.execute(f"""
-            INSERT INTO laps ({keys}) VALUES ({placeholders})
-        """, values)
-        db.commit()
+        
+        try:
+            db.cursor.execute(f"""
+                INSERT INTO laps ({keys}) VALUES ({placeholders})
+            """, values)
+            db.commit()
+        except Exception as e:
+            migration_logger.error(f"Error inserting lap {lap_number} for driver {abbr}: {e}")
+            continue
 
-        # Insert FULL telemetry without sampling:
+        # Insert telemetry data
         try:
             tel = lap.get_telemetry()
             if tel is not None and not tel.empty:
+                # Use a batch insert approach for better performance
+                telemetry_batch = []
                 for _, tel_row in tel.iterrows():
-                    tel_data = {
-                        "driver_id": driver_id,
-                        "lap_number": lap_number,
-                        "session_id": session_id,
-                        "time": str(tel_row["Time"]) if pd.notna(tel_row["Time"]) else None,
-                        "session_time": str(tel_row["SessionTime"]) if ("SessionTime" in tel_row and pd.notna(tel_row["SessionTime"])) else None,
-                        "date": tel_row["Date"].isoformat() if pd.notna(tel_row["Date"]) else None,
-                        "speed": float(tel_row["Speed"]) if pd.notna(tel_row["Speed"]) else None,
-                        "rpm": float(tel_row["RPM"]) if pd.notna(tel_row["RPM"]) else None,
-                        "gear": int(tel_row["nGear"]) if pd.notna(tel_row["nGear"]) else None,
-                        "throttle": float(tel_row["Throttle"]) if pd.notna(tel_row["Throttle"]) else None,
-                        "brake": 1 if (pd.notna(tel_row["Brake"]) and tel_row["Brake"]) else 0,
-                        "drs": int(tel_row["DRS"]) if pd.notna(tel_row["DRS"]) else None,
-                        "x": float(tel_row["X"]) if pd.notna(tel_row["X"]) else None,
-                        "y": float(tel_row["Y"]) if pd.notna(tel_row["Y"]) else None,
-                        "z": float(tel_row["Z"]) if pd.notna(tel_row["Z"]) else None,
-                        "source": tel_row["Source"] if pd.notna(tel_row["Source"]) else None,
-                        "year": year
-                    }
-                    k2 = ",".join(tel_data.keys())
-                    p2 = ",".join(["?"] * len(tel_data))
-                    v2 = list(tel_data.values())
-                    # Use INSERT OR IGNORE to avoid duplicates.
-                    db.cursor.execute(f"""
-                        INSERT OR IGNORE INTO telemetry ({k2}) VALUES ({p2})
-                    """, v2)
+                    # Create a unique key for this telemetry point
+                    time_str = str(tel_row["Time"]) if pd.notna(tel_row["Time"]) else None
+                    
+                    # Check if this record already exists - use a more efficient approach
+                    # by building a batch instead of checking one by one
+                    tel_data = (
+                        driver_id,
+                        lap_number,
+                        session_id,
+                        time_str,
+                        str(tel_row["SessionTime"]) if ("SessionTime" in tel_row.index and pd.notna(tel_row["SessionTime"])) else None,
+                        tel_row["Date"].isoformat() if pd.notna(tel_row["Date"]) else None,
+                        float(tel_row["Speed"]) if pd.notna(tel_row["Speed"]) else None,
+                        float(tel_row["RPM"]) if pd.notna(tel_row["RPM"]) else None,
+                        int(tel_row["nGear"]) if pd.notna(tel_row["nGear"]) else None,
+                        float(tel_row["Throttle"]) if pd.notna(tel_row["Throttle"]) else None,
+                        1 if (pd.notna(tel_row["Brake"]) and tel_row["Brake"]) else 0,
+                        int(tel_row["DRS"]) if pd.notna(tel_row["DRS"]) else None,
+                        float(tel_row["X"]) if pd.notna(tel_row["X"]) else None,
+                        float(tel_row["Y"]) if pd.notna(tel_row["Y"]) else None,
+                        float(tel_row["Z"]) if pd.notna(tel_row["Z"]) else None,
+                        tel_row["Source"] if pd.notna(tel_row["Source"]) else None,
+                        year
+                    )
+                    telemetry_batch.append(tel_data)
+                
+                # Execute in batches of 1000 for better performance
+                batch_size = 1000
+                for i in range(0, len(telemetry_batch), batch_size):
+                    batch = telemetry_batch[i:i+batch_size]
+                    
+                    # Use INSERT OR IGNORE to avoid duplicates
+                    db.cursor.executemany("""
+                        INSERT OR IGNORE INTO telemetry (
+                            driver_id, lap_number, session_id, time, session_time,
+                            date, speed, rpm, gear, throttle, brake, drs, x, y, z, source, year
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, batch)
                 db.commit()
         except Exception as e:
-            logger.error(f"Telemetry error lap {lap_number}, driver {abbr}: {e}")
+            migration_logger.error(f"Telemetry error lap {lap_number}, driver {abbr}: {e}")
 
 def migrate_weather(db: SQLiteF1Client, session_obj, session_id: int):
     if not hasattr(session_obj, "weather_data") or session_obj.weather_data is None or session_obj.weather_data.empty:
+        migration_logger.warning(f"No weather data for session ID: {session_id}")
         return
+        
     wdf = session_obj.weather_data
+    weather_batch = []
+    
     for _, wrow in wdf.iterrows():
         time_str = str(wrow["Time"]) if pd.notna(wrow["Time"]) else None
-        db.cursor.execute("""
-            SELECT id FROM weather WHERE session_id = ? AND time = ?
-        """, (session_id, time_str))
-        if db.cursor.fetchone():
-            continue
-        db.cursor.execute("""
-            INSERT INTO weather (
-                session_id, time, air_temp, humidity, pressure, rainfall,
-                track_temp, wind_direction, wind_speed
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+        
+        # Skip check for existing records for batch processing
+        weather_data = (
             session_id,
             time_str,
             float(wrow["AirTemp"]) if pd.notna(wrow["AirTemp"]) else None,
@@ -561,78 +622,122 @@ def migrate_weather(db: SQLiteF1Client, session_obj, session_id: int):
             float(wrow["TrackTemp"]) if pd.notna(wrow["TrackTemp"]) else None,
             int(wrow["WindDirection"]) if pd.notna(wrow["WindDirection"]) else None,
             float(wrow["WindSpeed"]) if pd.notna(wrow["WindSpeed"]) else None
-        ))
-    db.commit()
+        )
+        weather_batch.append(weather_data)
+    
+    # Execute batch insert
+    if weather_batch:
+        db.cursor.executemany("""
+            INSERT OR IGNORE INTO weather (
+                session_id, time, air_temp, humidity, pressure, rainfall,
+                track_temp, wind_direction, wind_speed
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, weather_batch)
+        db.commit()
 
-def migrate_session_details(db: SQLiteF1Client, schedule: pd.DataFrame, year: int):
-    for _, ev in tqdm(schedule.iterrows(), total=len(schedule), desc="Events"):
-        if not ev["F1ApiSupport"]:
-            logger.info(f"Skipping event {ev['EventName']} (no F1 API support).")
-            continue
-        row = db.cursor.execute("""
-            SELECT id FROM events WHERE year = ? AND round_number = ?
-        """, (year, int(ev["RoundNumber"]))).fetchone()
-        if not row:
-            continue
-        event_id = row["id"]
-        for sid in ["FP1", "FP2", "FP3", "Q", "R", "S", "SQ", "SS"]:
-            try:
-                session_obj = fastf1.get_session(year, ev["RoundNumber"], sid)
-                # Load FULL data (including laps, telemetry, weather, messages)
-                session_obj.load(laps=True, telemetry=True, weather=True, messages=True)
-            except Exception as e:
-                logger.warning(f"No session {sid} for {ev['EventName']}: {e}")
-                continue
-
+def migrate_session_details(db: SQLiteF1Client, schedule, year: int):
+    for idx, ev in tqdm(schedule.iterrows(), total=len(schedule), desc="Events"):
+        event_id = None
+        try:
+            # Get the event_id from the database
             db.cursor.execute("""
-                SELECT id FROM sessions WHERE event_id = ? AND name = ?
-            """, (event_id, session_obj.name))
-            sess_row = db.cursor.fetchone()
-            if not sess_row:
-                logger.info(f"Session {session_obj.name} not found in DB, skipping.")
+                SELECT id FROM events 
+                WHERE year = ? AND round_number = ?
+            """, (year, int(ev["RoundNumber"])))
+            ev_row = db.cursor.fetchone()
+            if ev_row:
+                event_id = ev_row["id"]
+            else:
+                migration_logger.warning(f"Event not found in database: {ev['EventName']} (Round {ev['RoundNumber']})")
                 continue
-            session_id = sess_row["id"]
-
-            try:
-                db.cursor.execute("""
-                    UPDATE sessions
-                    SET total_laps = ?,
-                        session_start_time = ?,
-                        t0_date = ?
-                    WHERE id = ?
-                """, (
-                    session_obj.total_laps if hasattr(session_obj, "total_laps") else None,
-                    str(session_obj.session_start_time) if hasattr(session_obj, "session_start_time") else None,
-                    session_obj.t0_date.isoformat() if (hasattr(session_obj, "t0_date") and session_obj.t0_date) else None,
-                    session_id
-                ))
-                db.commit()
-            except Exception as e2:
-                logger.error(f"Failed to update session row: {e2}")
-
-            if hasattr(session_obj, "results") and session_obj.results is not None and len(session_obj.results) > 0:
-                migrate_teams_and_drivers(db, session_obj, year)
-                migrate_results(db, session_obj, session_id, year)
-
-            if hasattr(session_obj, "laps"):
-                migrate_laps(db, session_obj, session_id, year)
-
-            migrate_weather(db, session_obj, session_id)
-            time.sleep(1)
-
-def main():
-    parser = argparse.ArgumentParser(description="Migrate FULL F1 data (including all telemetry) for a given year to SQLite.")
-    parser.add_argument("--year", type=int, required=True, help="Which year to migrate (e.g., 2025)")
-    args = parser.parse_args()
-
-    db = SQLiteF1Client(SQLITE_FULL_DB_PATH)
-    try:
-        schedule = migrate_events(db, args.year)
-        migrate_sessions(db, schedule, args.year)
-        migrate_session_details(db, schedule, args.year)
-        logger.info("Full migration complete!")
-    finally:
-        db.close()
-
-if __name__ == "__main__":
-    main()
+                
+            # Get the list of sessions for this event
+            sessions = []
+            for i in range(1, 6):
+                s_name = ev.get(f"Session{i}")
+                if pd.notna(s_name):
+                    sessions.append(s_name)
+                    
+            if not sessions:
+                migration_logger.warning(f"No sessions found for event: {ev['EventName']}")
+                continue
+                
+            # Process each session
+            for session_name in sessions:
+                try:
+                    # Get the session info from the database
+                    db.cursor.execute("""
+                        SELECT id FROM sessions 
+                        WHERE event_id = ? AND name = ?
+                    """, (event_id, session_name))
+                    session_row = db.cursor.fetchone()
+                    
+                    if session_row:
+                        session_id = session_row["id"]
+                        migration_logger.info(f"Processing existing session: {session_name} for event {ev['EventName']}")
+                    else:
+                        # If session doesn't exist in the database yet, let's initialize it
+                        migration_logger.info(f"Initializing session: {session_name} for event {ev['EventName']}")
+                        try:
+                            session_obj = fastf1.get_session(year, ev["RoundNumber"], session_name)
+                            session_obj.load(laps=False, telemetry=False, weather=False, messages=False)
+                            
+                            s_data = {
+                                "event_id": event_id,
+                                "name": session_name,
+                                "date": session_obj.date.isoformat() if hasattr(session_obj, "date") and session_obj.date else None,
+                                "session_type": _session_type(session_name),
+                                "total_laps": None,
+                                "session_start_time": None,
+                                "t0_date": None
+                            }
+                            session_id = db.insert_session(s_data)
+                        except Exception as e:
+                            migration_logger.error(f"Failed to initialize session '{session_name}' for {ev['EventName']}: {e}")
+                            continue
+                    
+                    # Now we have a session_id, let's load the full session data and migrate it
+                    try:
+                        migration_logger.info(f"Loading full data for session: {session_name}")
+                        session_obj = fastf1.get_session(year, ev["RoundNumber"], session_name)
+                        session_obj.load(laps=True, telemetry=True, weather=True, messages=True)
+                        
+                        # Update the session with any additional data we now have
+                        if hasattr(session_obj, "laps_from_session") and session_obj.laps_from_session:
+                            db.cursor.execute("""
+                                UPDATE sessions 
+                                SET total_laps = ?, session_start_time = ?, t0_date = ?
+                                WHERE id = ?
+                            """, (
+                                session_obj.total_laps if hasattr(session_obj, "total_laps") else None,
+                                str(session_obj.session_start_time) if hasattr(session_obj, "session_start_time") else None,
+                                session_obj.t0_date.isoformat() if hasattr(session_obj, "t0_date") and session_obj.t0_date else None,
+                                session_id
+                            ))
+                            db.commit()
+                        
+                        # Run migrations
+                        migration_logger.info(f"Migrating teams and drivers for session: {session_name}")
+                        migrate_teams_and_drivers(db, session_obj, year)
+                        
+                        migration_logger.info(f"Migrating results for session: {session_name}")
+                        migrate_results(db, session_obj, session_id, year)
+                        
+                        migration_logger.info(f"Migrating laps for session: {session_name}")
+                        migrate_laps(db, session_obj, session_id, year)
+                        
+                        migration_logger.info(f"Migrating weather for session: {session_name}")
+                        migrate_weather(db, session_obj, session_id)
+                        
+                        migration_logger.info(f"Completed migration for session: {session_name}")
+                        
+                    except Exception as e:
+                        migration_logger.error(f"Error processing session '{session_name}' for {ev['EventName']}: {e}")
+                        continue
+                        
+                except Exception as e:
+                    migration_logger.error(f"Error in session processing loop for '{session_name}': {e}")
+            
+        except Exception as e:
+            migration_logger.error(f"Error processing event {ev['EventName'] if 'EventName' in ev else 'unknown'}: {e}")
+            continue

@@ -47,9 +47,15 @@ if missing_vars:
     missing_str = ", ".join(missing_vars)
     raise EnvironmentError(f"Missing required environment variables: {missing_str}")
 
-# Load required environment variables
-SQLITE_DB_PATH = os.getenv("SQLITE_DB_PATH")
-FASTF1_CACHE_DIR = os.getenv("FASTF1_CACHE_DIR")
+# Resolve path relative to base if not absolute
+def resolve_path(env_var: str) -> str:
+    path = os.getenv(env_var)
+    if path and not os.path.isabs(path):
+        return os.path.join(BASE_DIR, path)
+    return path
+
+SQLITE_DB_PATH = resolve_path("SQLITE_DB_PATH")
+FASTF1_CACHE_DIR = resolve_path("FASTF1_CACHE_DIR")
 
 # Load optional environment variables with defaults
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", OPTIONAL_ENV_VARS["OPENWEATHER_API_KEY"])

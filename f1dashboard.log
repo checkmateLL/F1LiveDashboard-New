@@ -291,3 +291,826 @@ Traceback (most recent call last):
   File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
     raise ex from exc
 pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:29:34,287 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:29:36,357 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:32,361 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:37,739 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:41,990 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:44,921 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:47,324 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:30:50,790 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:31:10,913 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 13:31:24,792 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 204, in get_lap_times
+    df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:26:37,760 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:29:00,998 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:29:07,910 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:29:28,858 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:29:34,865 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:29:38,147 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:31:39,000 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:31:41,964 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:33:53,685 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:34:04,137 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 15:34:05,938 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:27:47,726 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:35:55,056 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:37:53,685 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:38:15,807 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:41:10,070 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:42:38,780 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:46:49,959 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:52:37,673 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:55:08,162 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:55:13,001 - f1dashboard - ERROR - Database error: Error retrieving DNF data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such column: r.lap_start_time
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 597, in get_dnf_data
+    df = pd.read_sql_query(query, db.conn, params=(session_id,))
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql '
+            SELECT 
+                r.driver_id, d.full_name AS driver_name, d.abbreviation, 
+                t.name AS team_name, t.team_color, 
+                r.lap_start_time, r.classified_position, r.status
+            FROM results r
+            JOIN drivers d ON r.driver_id = d.id
+            JOIN teams t ON d.team_id = t.id
+            WHERE r.session_id = ? AND (r.status NOT IN ('Finished', 'Running') OR r.status IS NULL)
+            ORDER BY r.classified_position
+        ': no such column: r.lap_start_time
+2025-03-21 16:57:52,775 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 16:59:42,302 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 17:04:59,647 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 17:07:30,956 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 17:16:59,598 - f1dashboard - ERROR - Database error: Database query execution error: no such column: laps.sector_1_time
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 49, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such column: laps.sector_1_time
+2025-03-21 17:18:16,613 - f1dashboard - ERROR - Database error: Database query execution error: no such column: laps.sector_1_time
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 49, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such column: laps.sector_1_time
+2025-03-21 17:18:19,496 - f1dashboard - ERROR - Database error: Database query execution error: no such column: laps.sector_1_time
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\db_connection.py", line 49, in execute_query
+    cursor.execute(query, params)
+sqlite3.OperationalError: no such column: laps.sector_1_time
+2025-03-21 17:40:25,160 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 17:40:27,356 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps
+2025-03-21 17:40:28,885 - f1dashboard - ERROR - Database error: Error retrieving lap times
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2674, in execute
+    cur.execute(sql, *args)
+sqlite3.OperationalError: no such table: laps
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\data_service.py", line 207, in get_lap_times
+    df = pd.read_sql_query(query, db.conn, params=params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 526, in read_sql_query
+    return pandas_sql.read_query(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2738, in read_query
+    cursor = self.execute(sql, params)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\pandas\io\sql.py", line 2686, in execute
+    raise ex from exc
+pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM laps WHERE session_id = ?': no such table: laps

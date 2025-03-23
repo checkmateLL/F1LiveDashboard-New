@@ -15,18 +15,18 @@ logger.setLevel(logging.INFO)
 
 
 class F1DataService:
-    """
-    Abstraction layer for F1 data access.
-    Provides a unified interface for accessing F1 data from SQLite.
-    """
-    
+    """Abstraction layer for F1 data access."""
+
     def __init__(self, sqlite_path: str = SQLITE_DB_PATH):
         self.sqlite_path = sqlite_path
 
     @staticmethod
     def _convert_id(value):
-        """Ensures IDs are converted to Python integers."""
-        return int(value) if isinstance(value, (np.integer, str)) else value
+        try:
+            return int(value)
+        except (ValueError, TypeError):
+            logger.error(f"Invalid ID format: {value}")
+            raise DatabaseError(f"Invalid ID format: {value}")
 
     def get_available_years(self) -> List[int]:
         """Fetches distinct years from the events table."""
@@ -190,8 +190,8 @@ class F1DataService:
             raise
 
     def get_lap_times(self, session_id: int, driver_id: Optional[int] = None) -> pd.DataFrame:
-        """Fetches lap times for a given session, optionally filtering by driver."""
         session_id = self._convert_id(session_id)
+
         query = "SELECT * FROM laps WHERE session_id = ?"
         params = [session_id]
 
@@ -200,15 +200,19 @@ class F1DataService:
             query += " AND driver_id = ?"
             params.append(driver_id)
 
+        logger.debug(f"Executing SQL Query: {query} with params {params}")
+
         try:
-            df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=params)
-            return df
+            with DatabaseConnectionHandler(self.sqlite_path) as db:
+                df = pd.read_sql_query(query, db.conn, params=params)
+                if df.empty:
+                    logger.warning(f"No lap times found for session_id={session_id}, driver_id={driver_id}")
+                return df
         except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            logger.error(f"Error retrieving lap times for session {session_id}: {e}")
+            logger.error(f"Database error during lap time retrieval: {e}")
             raise DatabaseError("Error retrieving lap times")
 
     def get_telemetry(self, session_id: int, driver_id: int, lap_number: int) -> pd.DataFrame:
-        """Fetches telemetry data for a given session, driver, and lap number."""
         session_id = self._convert_id(session_id)
         driver_id = self._convert_id(driver_id)
         lap_number = self._convert_id(lap_number)
@@ -218,11 +222,18 @@ class F1DataService:
             WHERE session_id = ? AND driver_id = ? AND lap_number = ?
             ORDER BY time
         """
+        params = (session_id, driver_id, lap_number)
+
+        logger.debug(f"Executing SQL Query: {query} with params {params}")
+
         try:
-            df = pd.read_sql_query(query, sqlite3.connect(self.sqlite_path), params=(session_id, driver_id, lap_number))
-            return df
+            with DatabaseConnectionHandler(self.sqlite_path) as db:
+                df = pd.read_sql_query(query, db.conn, params=params)
+                if df.empty:
+                    logger.warning(f"No telemetry data found for session_id={session_id}, driver_id={driver_id}, lap_number={lap_number}")
+                return df
         except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
-            logger.error(f"Error retrieving telemetry data for session {session_id}, driver {driver_id}: {e}")
+            logger.error(f"Database error during telemetry data retrieval: {e}")
             raise DatabaseError("Error retrieving telemetry data")
 
     def get_weather(self, session_id: int) -> Dict[str, Any]:
@@ -556,3 +567,42 @@ class F1DataService:
                 return result_df
         
         return lap_data
+    
+    def get_dnf_data(self, session_id: int) -> pd.DataFrame:
+        """
+        Fetches drivers who did not finish (DNF) in a given session.
+        
+        Parameters:
+        - session_id: The session ID
+        
+        Returns:
+        - DataFrame containing DNF information
+        """
+        session_id = self._convert_id(session_id)
+
+        query = """
+            SELECT 
+                r.driver_id, d.full_name AS driver_name, d.abbreviation, 
+                t.name AS team_name, t.team_color, 
+                r.classified_position, r.status, r.race_time
+            FROM results r
+            JOIN drivers d ON r.driver_id = d.id
+            JOIN teams t ON d.team_id = t.id
+            WHERE r.session_id = ? 
+                AND (r.status NOT IN ('Finished', 'Running') OR r.status IS NULL)
+            ORDER BY r.classified_position
+        """
+
+        try:
+            with DatabaseConnectionHandler() as db:
+                df = pd.read_sql_query(query, db.conn, params=(session_id,))
+                
+                if df.empty:
+                    logger.warning(f"No DNF data found for session {session_id}")
+                    return pd.DataFrame()  # Return an empty DataFrame
+                
+                return df
+        except (sqlite3.Error, pd.io.sql.DatabaseError) as e:
+            logger.error(f"Database error retrieving DNF data for session {session_id}: {e}")
+            raise DatabaseError("Error retrieving DNF data")
+

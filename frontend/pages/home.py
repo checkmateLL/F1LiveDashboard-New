@@ -1,63 +1,69 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
 from frontend.components.countdown import get_next_event, display_countdown
-from frontend.components.event_cards import event_card
 from backend.data_service import F1DataService
-from backend.error_handling import DatabaseError
 
 # Initialize data service
 data_service = F1DataService()
 
 def home():
-    """Home Page - Displays recent and upcoming events with countdown."""
-    st.title("🏎️ F1 Dashboard - Home")
+    st.title("🏠 F1 Dashboard Home")
 
-    try:
-        # Store selected year in session state
-        current_year = datetime.now().year
-        if "selected_year" not in st.session_state:
-            st.session_state["selected_year"] = current_year
+    years = data_service.get_available_years()
+    year = st.selectbox("Select Season", years)
 
-        # Fetch all events for the selected year
-        events_df = data_service.get_events(st.session_state["selected_year"])
-        if not events_df or len(events_df) == 0:
-            st.warning("No events available for this season.")
-            return
+    events = data_service.get_events(year)
+    events_df = pd.DataFrame(events) if events else pd.DataFrame()
 
-        today = datetime.now()
+    if not events_df.empty:
+        events_df['event_date'] = pd.to_datetime(events_df['event_date'], errors='coerce')
+        today = pd.Timestamp(datetime.now().date())
 
-        # Convert event dates to datetime
-        events_df["event_date_dt"] = pd.to_datetime(events_df["event_date"], errors="coerce")
+        # Identify current event
+        events_df['end_date'] = events_df['event_date'] + pd.Timedelta(days=3)
+        current_event = events_df[(events_df['event_date'] <= today) & (events_df['end_date'] >= today)]
 
-        # Separate past & upcoming events
-        past_events = events_df[events_df["event_date_dt"] < today].sort_values(by="event_date_dt", ascending=False)
-        upcoming_events = events_df[events_df["event_date_dt"] >= today].sort_values(by="event_date_dt")
+        if not current_event.empty:
+            current_event_info = current_event.iloc[0].to_dict()
+            st.subheader("🚦 Current Event")
+            st.markdown(f"""
+                <div style="padding: 15px; border-radius: 8px; background-color: #228b22; color: white;">
+                    <h2>{current_event_info['event_name']}</h2>
+                    <p>{current_event_info['country']} | Round {current_event_info['round_number']}</p>
+                    <p>{current_event_info['event_date'].strftime('%d %b %Y')} - {(current_event_info['end_date']).strftime('%d %b %Y')}</p>
+                </div>
+            """, unsafe_allow_html=True)
 
-        # Event Countdown
+            sessions = data_service.get_sessions(current_event_info['id'])
+            sessions_df = pd.DataFrame(sessions) if sessions else pd.DataFrame()
+            sessions_df['date'] = pd.to_datetime(sessions_df['date'], errors='coerce')
+            current_session = sessions_df[(sessions_df['date'].dt.date == today.date())]
+
+            if not current_session.empty:
+                current_session_info = current_session.iloc[0].to_dict()
+                st.markdown(f"""
+                    <div style="padding: 10px; border-radius: 8px; background-color: #444; color: white; margin-top: 10px;">
+                        <h4>Current Session: {current_session_info['name']}</h4>
+                        <p>{current_session_info['session_type'].title()} - {current_session_info['date'].strftime('%H:%M')}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+
         next_event = get_next_event(events_df)
         if next_event:
+            st.subheader("⏳ Next Event Countdown")
             display_countdown(next_event)
         else:
-            st.info("No upcoming events available.")
+            st.warning("No upcoming events found.")
+    else:
+        st.error("No events data available for selected year.")
 
-        # Display recent & upcoming events
-        col1, col2 = st.columns(2)
+    st.markdown("---")
+    st.subheader("All Events")
+    if events_df.empty:
+        st.warning("No events found.")
+    else:
+        st.dataframe(events_df[['round_number', 'event_name', 'country', 'event_date']])
 
-        with col1:
-            st.subheader("Recent Events")
-            for _, event in past_events.iterrows():
-                event_card(event.to_dict(), is_past=True)
-
-        with col2:
-            st.subheader("Upcoming Events")
-            for _, event in upcoming_events.iterrows():
-                event_card(event.to_dict(), is_past=False)
-
-    except DatabaseError as e:
-        st.error(f"⚠️ Database error: {e}")
-    except Exception as e:
-        st.error(f"⚠️ Unexpected error: {e}")
-
-home()
+if __name__ == "__main__":
+    home()

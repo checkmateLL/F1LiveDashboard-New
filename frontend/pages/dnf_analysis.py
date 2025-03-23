@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -9,6 +10,11 @@ from backend.error_handling import DatabaseError
 # Initialize data service
 data_service = F1DataService()
 
+def is_data_empty(data):
+    if isinstance(data, pd.DataFrame):
+        return data.empty
+    return not bool(data)
+
 def dnf_analysis():
     """DNF (Did Not Finish) Analysis & Failure Trends."""
     st.title("⚠️ DNF Analysis & Reliability Trends")
@@ -16,7 +22,15 @@ def dnf_analysis():
     try:
         # Fetch available years
         available_years = data_service.get_available_years()
-        selected_year = st.selectbox("Select Season", available_years, index=available_years.index(st.session_state.get("selected_year", available_years[0])))
+        selected_year = st.selectbox(
+            "Select Season",
+            available_years,
+            index=available_years.index(
+                st.session_state.get("selected_year", available_years[0])
+            )
+            if st.session_state.get("selected_year", available_years[0]) in available_years
+            else 0,
+        )
         st.session_state["selected_year"] = selected_year
 
         # Fetch events
@@ -26,7 +40,15 @@ def dnf_analysis():
             return
 
         event_options = {event["event_name"]: event["id"] for event in events}
-        selected_event = st.selectbox("Select Event", event_options.keys(), index=list(event_options.values()).index(st.session_state.get("selected_event", next(iter(event_options.values())))))
+        event_names = list(event_options.keys())
+        event_ids = list(event_options.values())
+
+        default_event_id = st.session_state.get("selected_event", event_ids[0])
+        if default_event_id not in event_ids:
+            default_event_id = event_ids[0]
+        default_event_name = next(name for name, eid in event_options.items() if eid == default_event_id)
+
+        selected_event = st.selectbox("Select Event", event_names, index=event_names.index(default_event_name))
         event_id = event_options[selected_event]
         st.session_state["selected_event"] = event_id
 
@@ -37,13 +59,21 @@ def dnf_analysis():
             return
 
         session_options = {session["name"]: session["id"] for session in sessions}
-        selected_session = st.selectbox("Select Session", session_options.keys(), index=list(session_options.values()).index(st.session_state.get("selected_session", next(iter(session_options.values())))))
+        session_names = list(session_options.keys())
+        session_ids = list(session_options.values())
+
+        default_session_id = st.session_state.get("selected_session", session_ids[0])
+        if default_session_id not in session_ids:
+            default_session_id = session_ids[0]
+        default_session_name = next(name for name, sid in session_options.items() if sid == default_session_id)
+
+        selected_session = st.selectbox("Select Session", session_names, index=session_names.index(default_session_name))
         session_id = session_options[selected_session]
         st.session_state["selected_session"] = session_id
 
         # Fetch DNF data from results table (derived from race status)
         dnf_df = data_service.get_dnf_data(session_id)
-        if not dnf_df or (isinstance(dnf_df, pd.DataFrame) and dnf_df.empty):
+        if is_data_empty(dnf_df):
             st.warning("No DNF data available for this session.")
             return
 
@@ -72,23 +102,23 @@ def plot_dnf_timeline(df):
     """Visualizes DNFs over the race duration."""
     fig = px.scatter(
         df,
-        x="lap_number",
+        x="classified_position",
         y="driver_name",
         text="team_name",
         title="📌 DNF Timeline (Lap of Retirement)",
-        color="failure_reason",
+        color="status",
         labels={"lap_number": "Lap", "driver_name": "Driver"},
     )
     fig.update_traces(textposition="top center", marker=dict(size=10))
     st.plotly_chart(fig, use_container_width=True)
 
 def plot_dnf_reasons(df):
-    """Shows distribution of failure reasons causing DNFs."""
-    if "failure_reason" not in df.columns or df["failure_reason"].isna().all():
-        st.info("No failure reasons available for this session.")
+    """Shows distribution of failure reasons (from status)."""
+    if "status" not in df.columns or df["status"].isna().all():
+        st.info("No DNF statuses available for this session.")
         return
 
-    reason_counts = df["failure_reason"].value_counts().reset_index()
+    reason_counts = df["status"].value_counts().reset_index()
     reason_counts.columns = ["Failure Reason", "Count"]
 
     fig = px.bar(
@@ -119,5 +149,6 @@ def plot_team_dnf_analysis(df):
         text="DNFs",
     )
     st.plotly_chart(fig, use_container_width=True)
+
 
 dnf_analysis()

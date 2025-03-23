@@ -138,7 +138,7 @@ def show_driver_standings(data_service, year):
             xaxis={'tickangle': 45}  # Angle the driver names for better readability
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key=f"driver_standings_chart_{year}")
         
         # Add a checkbox to toggle the detailed table view
         if st.checkbox("Show detailed standings table", value=False):
@@ -206,7 +206,7 @@ def show_constructor_standings(data_service, year):
                 y=[team['total_points']],
                 name=team['team_name'],
                 marker_color=add_hash_to_color(team['team_color']),
-                text=[team['total_points']],  # Just show the points
+                text=[team['total_points']], 
                 textposition="outside",
                 textfont=dict(color="white")
             ))
@@ -222,7 +222,7 @@ def show_constructor_standings(data_service, year):
             showlegend=False
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key=f"constructor_standings_chart_{year}")
         
         # Add a checkbox to toggle the detailed table view
         if st.checkbox("Show detailed constructors table", value=False):
@@ -348,7 +348,7 @@ def show_season_progress(data_service, year):
                     xaxis={'tickangle': 45}
                 )
                 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key=f"season_progress_drivers_chart_{year}")
         
         # Similar simplified visualization for team standings
         team_standings = data_service.get_constructor_standings(year)
@@ -369,18 +369,19 @@ def show_season_progress(data_service, year):
                 team_standings = team_standings.sort_values('total_points', ascending=False)
                 
                 # Create bar chart with team colors
-                fig = go.Figure()
-                
-                for i, team in team_standings.iterrows():
-                    fig.add_trace(go.Bar(
-                        x=[team['team_name']],
-                        y=[team['total_points']],
-                        name=team['team_name'],
-                        marker_color=add_hash_to_color(team['team_color']),
-                        text=[team['total_points']],
-                        textposition="outside",
-                        textfont=dict(color="white")
-                    ))
+                if not is_data_empty(team_standings):
+                    fig_constructors = go.Figure()
+
+                    for i, team in team_standings.iterrows():
+                        fig_constructors.add_trace(go.Bar(
+                            x=[team['team_name']],
+                            y=[team['total_points']],
+                            name=team['team_name'],
+                            marker_color=add_hash_to_color(team['team_color']),
+                            text=[team['total_points']],
+                            textposition="outside",
+                            textfont=dict(color="white")
+                        ))
                 
                 fig.update_layout(
                     title=f"{year} Constructors' Championship Standings",
@@ -393,7 +394,7 @@ def show_season_progress(data_service, year):
                     showlegend=False
                 )
                 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig_constructors, use_container_width=True, key=f"season_progress_constructors_chart_{year}")
         
         # Note on progress calculation
         st.info("""
