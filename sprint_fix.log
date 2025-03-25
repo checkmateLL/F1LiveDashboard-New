@@ -1818,3 +1818,923 @@ fastf1._api.SessionNotAvailableError: No data for this session! If this session 
     raise DataNotLoadedError(
 fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
 
+2025-03-23 16:53:28,710 - INFO - Found 6 sprint sessions for 2025
+2025-03-23 16:53:28,710 - INFO - --------------------------------------------------
+2025-03-23 16:53:28,711 - INFO - Fixing session: Sprint - Chinese Grand Prix (Round 2)
+2025-03-23 16:53:28,712 - INFO - Loading data from FastF1...
+2025-03-23 16:53:28,857 - INFO - Loading detailed session data...
+2025-03-23 16:53:28,858 - INFO - Loading data for Chinese Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:28,866 - INFO - Using cached data for session_info
+2025-03-23 16:53:28,876 - INFO - Using cached data for driver_info
+2025-03-23 16:53:29,395 - INFO - Using cached data for session_status_data
+2025-03-23 16:53:29,413 - INFO - Using cached data for lap_count
+2025-03-23 16:53:29,432 - INFO - Using cached data for track_status_data
+2025-03-23 16:53:29,456 - INFO - Using cached data for _extended_timing_data
+2025-03-23 16:53:29,496 - INFO - Using cached data for timing_app_data
+2025-03-23 16:53:29,499 - INFO - Processing timing data...
+2025-03-23 16:53:29,934 - INFO - Using cached data for car_data
+2025-03-23 16:53:30,007 - INFO - Using cached data for position_data
+2025-03-23 16:53:32,052 - INFO - Using cached data for weather_data
+2025-03-23 16:53:32,074 - INFO - Using cached data for race_control_messages
+2025-03-23 16:53:32,210 - INFO - Finished loading data for 20 drivers: ['44', '81', '1', '63', '16', '22', '12', '4', '18', '14', '23', '10', '6', '30', '87', '31', '55', '5', '27', '7']
+2025-03-23 16:53:32,214 - INFO - Migrating results for 20 drivers
+2025-03-23 16:53:32,216 - INFO - Calculating positions from lap data...
+2025-03-23 16:53:32,221 - INFO - Calculated positions for 20 drivers
+2025-03-23 16:53:32,360 - INFO - Migrating 380 laps
+2025-03-23 16:53:32,550 - INFO - Migrating 84 weather data points
+2025-03-23 16:53:32,593 - INFO - Migrating 29 race control messages
+2025-03-23 16:53:32,596 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,597 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,599 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,601 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,602 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,604 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,606 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,607 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,609 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,610 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,612 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,613 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,615 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,616 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,617 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,619 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,620 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,621 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,622 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,624 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,626 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,627 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,628 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,630 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,631 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,633 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,634 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,636 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,636 - ERROR - Error processing message: 'DriverNumber'
+2025-03-23 16:53:32,636 - INFO - Successfully fixed session ID 12
+2025-03-23 16:53:32,636 - INFO - --------------------------------------------------
+2025-03-23 16:53:32,636 - INFO - Fixing session: Sprint - Miami Grand Prix (Round 6)
+2025-03-23 16:53:32,636 - INFO - Loading data from FastF1...
+2025-03-23 16:53:32,700 - INFO - Loading detailed session data...
+2025-03-23 16:53:32,701 - INFO - Loading data for Miami Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:32,702 - INFO - No cached data found for session_info. Loading data...
+2025-03-23 16:53:32,705 - INFO - Fetching session info data...
+2025-03-23 16:53:33,023 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:33,377 - WARNING - Failed to load session info data!
+2025-03-23 16:53:33,379 - DEBUG - Traceback for failure in session info data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1469, in _load_session_info
+    self._session_info = api.session_info(self.api_path,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1687, in session_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:33,524 - INFO - No cached data found for driver_info. Loading data...
+2025-03-23 16:53:33,526 - INFO - Fetching driver list...
+2025-03-23 16:53:33,725 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:33,991 - WARNING - Failed to load extended driver information!
+2025-03-23 16:53:33,993 - DEBUG - Exception while loading driver list
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2259, in _drivers_from_f1_api
+    f1di = api.driver_info(self.api_path, livedata=livedata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1535, in driver_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:34,207 - WARNING - No result data for this session available on Ergast! (This is expected for recent sessions)
+2025-03-23 16:53:34,209 - WARNING - Failed to load driver list and session results!
+2025-03-23 16:53:34,235 - INFO - No cached data found for session_status_data. Loading data...
+2025-03-23 16:53:34,235 - INFO - Fetching session status data...
+2025-03-23 16:53:34,501 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:34,666 - WARNING - Failed to load session status data!
+2025-03-23 16:53:34,668 - DEBUG - Traceback for failure in session status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2032, in _load_session_status_data
+    session_status = api.session_status_data(self.api_path,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1333, in session_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:34,670 - INFO - No cached data found for lap_count. Loading data...
+2025-03-23 16:53:34,672 - INFO - Fetching lap count data...
+2025-03-23 16:53:34,973 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:35,185 - WARNING - Failed to load total lap count!
+2025-03-23 16:53:35,186 - DEBUG - Traceback for failure in total lap count
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2017, in _load_total_lap_count
+    lap_count = api.lap_count(self.api_path, livedata=livedata)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1476, in lap_count
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:35,188 - INFO - No cached data found for track_status_data. Loading data...
+2025-03-23 16:53:35,191 - INFO - Fetching track status data...
+2025-03-23 16:53:35,459 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:35,670 - WARNING - Failed to load track status data!
+2025-03-23 16:53:35,670 - DEBUG - Traceback for failure in track status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2004, in _load_track_status_data
+    track_status = api.track_status_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1277, in track_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:35,687 - INFO - No cached data found for _extended_timing_data. Loading data...
+2025-03-23 16:53:35,689 - INFO - Fetching timing data...
+2025-03-23 16:53:35,992 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:36,189 - WARNING - Failed to load timing data!
+2025-03-23 16:53:36,191 - DEBUG - Traceback for failure in lap timing data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1475, in _load_laps_data
+    = api._extended_timing_data(self.api_path, livedata=livedata)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 200, in _extended_timing_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:36,194 - INFO - No cached data found for car_data. Loading data...
+2025-03-23 16:53:36,196 - INFO - Fetching car data...
+2025-03-23 16:53:36,482 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:36,654 - WARNING - Car telemetry data is unavailable!
+2025-03-23 16:53:36,672 - INFO - No cached data found for position_data. Loading data...
+2025-03-23 16:53:36,676 - INFO - Fetching position data...
+2025-03-23 16:53:37,003 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:37,198 - WARNING - Car position data is unavailable!
+2025-03-23 16:53:37,200 - WARNING - Failed to determine `Session.t0_date`!
+2025-03-23 16:53:37,202 - INFO - No cached data found for weather_data. Loading data...
+2025-03-23 16:53:37,204 - INFO - Fetching weather data...
+2025-03-23 16:53:37,466 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:37,671 - WARNING - Failed to load weather data!
+2025-03-23 16:53:37,674 - DEBUG - Traceback for failure in weather data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2410, in _load_weather_data
+    weather_data = api.weather_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1613, in weather_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:37,676 - INFO - No cached data found for race_control_messages. Loading data...
+2025-03-23 16:53:37,678 - INFO - Fetching race control messages...
+2025-03-23 16:53:37,955 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:38,291 - WARNING - Failed to load race control messages!
+2025-03-23 16:53:38,293 - DEBUG - Traceback for failure in race control messages
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2417, in _load_race_control_messages
+    race_control_messages = api.race_control_messages(self.api_path,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1404, in race_control_messages
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:38,296 - INFO - Finished loading data for 0 drivers: []
+2025-03-23 16:53:38,298 - WARNING - No results data available for session ID 32
+2025-03-23 16:53:38,299 - ERROR - Error during migration: The data you are trying to access has not been loaded yet. See `Session.load`
+2025-03-23 16:53:38,303 - ERROR - Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 544, in fix_session
+    migrate_laps(conn, session, session_id, session_info['year'])
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 220, in migrate_laps
+    if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1290, in laps
+    return self._get_property_warn_not_loaded('_laps')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1249, in _get_property_warn_not_loaded
+    raise DataNotLoadedError(
+fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
+
+2025-03-23 16:53:38,305 - INFO - --------------------------------------------------
+2025-03-23 16:53:38,308 - INFO - Fixing session: Sprint - Belgian Grand Prix (Round 13)
+2025-03-23 16:53:38,309 - INFO - Loading data from FastF1...
+2025-03-23 16:53:38,363 - INFO - Loading detailed session data...
+2025-03-23 16:53:38,364 - INFO - Loading data for Belgian Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:38,366 - INFO - No cached data found for session_info. Loading data...
+2025-03-23 16:53:38,368 - INFO - Fetching session info data...
+2025-03-23 16:53:38,608 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:38,889 - WARNING - Failed to load session info data!
+2025-03-23 16:53:38,891 - DEBUG - Traceback for failure in session info data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1469, in _load_session_info
+    self._session_info = api.session_info(self.api_path,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1687, in session_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:38,894 - INFO - No cached data found for driver_info. Loading data...
+2025-03-23 16:53:38,895 - INFO - Fetching driver list...
+2025-03-23 16:53:39,085 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:39,313 - WARNING - Failed to load extended driver information!
+2025-03-23 16:53:39,315 - DEBUG - Exception while loading driver list
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2259, in _drivers_from_f1_api
+    f1di = api.driver_info(self.api_path, livedata=livedata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1535, in driver_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:39,533 - WARNING - No result data for this session available on Ergast! (This is expected for recent sessions)
+2025-03-23 16:53:39,535 - WARNING - Failed to load driver list and session results!
+2025-03-23 16:53:39,574 - INFO - No cached data found for session_status_data. Loading data...
+2025-03-23 16:53:39,576 - INFO - Fetching session status data...
+2025-03-23 16:53:39,847 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:40,051 - WARNING - Failed to load session status data!
+2025-03-23 16:53:40,053 - DEBUG - Traceback for failure in session status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2032, in _load_session_status_data
+    session_status = api.session_status_data(self.api_path,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1333, in session_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:40,055 - INFO - No cached data found for lap_count. Loading data...
+2025-03-23 16:53:40,057 - INFO - Fetching lap count data...
+2025-03-23 16:53:40,332 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:40,561 - WARNING - Failed to load total lap count!
+2025-03-23 16:53:40,564 - DEBUG - Traceback for failure in total lap count
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2017, in _load_total_lap_count
+    lap_count = api.lap_count(self.api_path, livedata=livedata)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1476, in lap_count
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:40,566 - INFO - No cached data found for track_status_data. Loading data...
+2025-03-23 16:53:40,568 - INFO - Fetching track status data...
+2025-03-23 16:53:40,874 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:41,068 - WARNING - Failed to load track status data!
+2025-03-23 16:53:41,069 - DEBUG - Traceback for failure in track status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2004, in _load_track_status_data
+    track_status = api.track_status_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1277, in track_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:41,072 - INFO - No cached data found for _extended_timing_data. Loading data...
+2025-03-23 16:53:41,075 - INFO - Fetching timing data...
+2025-03-23 16:53:41,445 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:41,599 - WARNING - Failed to load timing data!
+2025-03-23 16:53:41,601 - DEBUG - Traceback for failure in lap timing data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1475, in _load_laps_data
+    = api._extended_timing_data(self.api_path, livedata=livedata)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 200, in _extended_timing_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:41,604 - INFO - No cached data found for car_data. Loading data...
+2025-03-23 16:53:41,605 - INFO - Fetching car data...
+2025-03-23 16:53:41,894 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:42,098 - WARNING - Car telemetry data is unavailable!
+2025-03-23 16:53:42,100 - INFO - No cached data found for position_data. Loading data...
+2025-03-23 16:53:42,102 - INFO - Fetching position data...
+2025-03-23 16:53:42,399 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:42,622 - WARNING - Car position data is unavailable!
+2025-03-23 16:53:42,625 - WARNING - Failed to determine `Session.t0_date`!
+2025-03-23 16:53:42,626 - INFO - No cached data found for weather_data. Loading data...
+2025-03-23 16:53:42,628 - INFO - Fetching weather data...
+2025-03-23 16:53:42,906 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:43,099 - WARNING - Failed to load weather data!
+2025-03-23 16:53:43,101 - DEBUG - Traceback for failure in weather data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2410, in _load_weather_data
+    weather_data = api.weather_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1613, in weather_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:43,103 - INFO - No cached data found for race_control_messages. Loading data...
+2025-03-23 16:53:43,105 - INFO - Fetching race control messages...
+2025-03-23 16:53:43,397 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:43,606 - WARNING - Failed to load race control messages!
+2025-03-23 16:53:43,607 - DEBUG - Traceback for failure in race control messages
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2417, in _load_race_control_messages
+    race_control_messages = api.race_control_messages(self.api_path,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1404, in race_control_messages
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:43,610 - INFO - Finished loading data for 0 drivers: []
+2025-03-23 16:53:43,613 - WARNING - No results data available for session ID 67
+2025-03-23 16:53:43,614 - ERROR - Error during migration: The data you are trying to access has not been loaded yet. See `Session.load`
+2025-03-23 16:53:43,616 - ERROR - Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 544, in fix_session
+    migrate_laps(conn, session, session_id, session_info['year'])
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 220, in migrate_laps
+    if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1290, in laps
+    return self._get_property_warn_not_loaded('_laps')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1249, in _get_property_warn_not_loaded
+    raise DataNotLoadedError(
+fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
+
+2025-03-23 16:53:43,618 - INFO - --------------------------------------------------
+2025-03-23 16:53:43,622 - INFO - Fixing session: Sprint - United States Grand Prix (Round 19)
+2025-03-23 16:53:43,623 - INFO - Loading data from FastF1...
+2025-03-23 16:53:43,676 - INFO - Loading detailed session data...
+2025-03-23 16:53:43,677 - INFO - Loading data for United States Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:43,679 - INFO - No cached data found for session_info. Loading data...
+2025-03-23 16:53:43,680 - INFO - Fetching session info data...
+2025-03-23 16:53:43,887 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:44,156 - WARNING - Failed to load session info data!
+2025-03-23 16:53:44,158 - DEBUG - Traceback for failure in session info data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1469, in _load_session_info
+    self._session_info = api.session_info(self.api_path,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1687, in session_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:44,161 - INFO - No cached data found for driver_info. Loading data...
+2025-03-23 16:53:44,163 - INFO - Fetching driver list...
+2025-03-23 16:53:44,381 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:44,604 - WARNING - Failed to load extended driver information!
+2025-03-23 16:53:44,606 - DEBUG - Exception while loading driver list
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2259, in _drivers_from_f1_api
+    f1di = api.driver_info(self.api_path, livedata=livedata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1535, in driver_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:44,839 - WARNING - No result data for this session available on Ergast! (This is expected for recent sessions)
+2025-03-23 16:53:44,841 - WARNING - Failed to load driver list and session results!
+2025-03-23 16:53:44,880 - INFO - No cached data found for session_status_data. Loading data...
+2025-03-23 16:53:44,882 - INFO - Fetching session status data...
+2025-03-23 16:53:45,144 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:45,381 - WARNING - Failed to load session status data!
+2025-03-23 16:53:45,384 - DEBUG - Traceback for failure in session status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2032, in _load_session_status_data
+    session_status = api.session_status_data(self.api_path,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1333, in session_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:45,387 - INFO - No cached data found for lap_count. Loading data...
+2025-03-23 16:53:45,388 - INFO - Fetching lap count data...
+2025-03-23 16:53:45,648 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:45,848 - WARNING - Failed to load total lap count!
+2025-03-23 16:53:45,851 - DEBUG - Traceback for failure in total lap count
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2017, in _load_total_lap_count
+    lap_count = api.lap_count(self.api_path, livedata=livedata)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1476, in lap_count
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:45,852 - INFO - No cached data found for track_status_data. Loading data...
+2025-03-23 16:53:45,855 - INFO - Fetching track status data...
+2025-03-23 16:53:46,189 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:46,380 - WARNING - Failed to load track status data!
+2025-03-23 16:53:46,382 - DEBUG - Traceback for failure in track status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2004, in _load_track_status_data
+    track_status = api.track_status_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1277, in track_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:46,385 - INFO - No cached data found for _extended_timing_data. Loading data...
+2025-03-23 16:53:46,387 - INFO - Fetching timing data...
+2025-03-23 16:53:46,627 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:46,867 - WARNING - Failed to load timing data!
+2025-03-23 16:53:46,869 - DEBUG - Traceback for failure in lap timing data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1475, in _load_laps_data
+    = api._extended_timing_data(self.api_path, livedata=livedata)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 200, in _extended_timing_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:46,872 - INFO - No cached data found for car_data. Loading data...
+2025-03-23 16:53:46,874 - INFO - Fetching car data...
+2025-03-23 16:53:47,154 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:47,406 - WARNING - Car telemetry data is unavailable!
+2025-03-23 16:53:47,408 - INFO - No cached data found for position_data. Loading data...
+2025-03-23 16:53:47,410 - INFO - Fetching position data...
+2025-03-23 16:53:47,646 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:47,870 - WARNING - Car position data is unavailable!
+2025-03-23 16:53:47,872 - WARNING - Failed to determine `Session.t0_date`!
+2025-03-23 16:53:47,873 - INFO - No cached data found for weather_data. Loading data...
+2025-03-23 16:53:47,875 - INFO - Fetching weather data...
+2025-03-23 16:53:48,138 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:48,345 - WARNING - Failed to load weather data!
+2025-03-23 16:53:48,347 - DEBUG - Traceback for failure in weather data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2410, in _load_weather_data
+    weather_data = api.weather_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1613, in weather_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:48,350 - INFO - No cached data found for race_control_messages. Loading data...
+2025-03-23 16:53:48,351 - INFO - Fetching race control messages...
+2025-03-23 16:53:48,660 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:48,877 - WARNING - Failed to load race control messages!
+2025-03-23 16:53:48,879 - DEBUG - Traceback for failure in race control messages
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2417, in _load_race_control_messages
+    race_control_messages = api.race_control_messages(self.api_path,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1404, in race_control_messages
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:48,882 - INFO - Finished loading data for 0 drivers: []
+2025-03-23 16:53:48,884 - WARNING - No results data available for session ID 97
+2025-03-23 16:53:48,884 - ERROR - Error during migration: The data you are trying to access has not been loaded yet. See `Session.load`
+2025-03-23 16:53:48,886 - ERROR - Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 544, in fix_session
+    migrate_laps(conn, session, session_id, session_info['year'])
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 220, in migrate_laps
+    if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1290, in laps
+    return self._get_property_warn_not_loaded('_laps')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1249, in _get_property_warn_not_loaded
+    raise DataNotLoadedError(
+fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
+
+2025-03-23 16:53:48,888 - INFO - --------------------------------------------------
+2025-03-23 16:53:48,891 - INFO - Fixing session: Sprint - São Paulo Grand Prix (Round 21)
+2025-03-23 16:53:48,893 - INFO - Loading data from FastF1...
+2025-03-23 16:53:48,947 - INFO - Loading detailed session data...
+2025-03-23 16:53:48,948 - INFO - Loading data for São Paulo Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:48,950 - INFO - No cached data found for session_info. Loading data...
+2025-03-23 16:53:48,952 - INFO - Fetching session info data...
+2025-03-23 16:53:49,151 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:49,368 - WARNING - Failed to load session info data!
+2025-03-23 16:53:49,370 - DEBUG - Traceback for failure in session info data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1469, in _load_session_info
+    self._session_info = api.session_info(self.api_path,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1687, in session_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:49,373 - INFO - No cached data found for driver_info. Loading data...
+2025-03-23 16:53:49,375 - INFO - Fetching driver list...
+2025-03-23 16:53:49,703 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:49,869 - WARNING - Failed to load extended driver information!
+2025-03-23 16:53:49,871 - DEBUG - Exception while loading driver list
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2259, in _drivers_from_f1_api
+    f1di = api.driver_info(self.api_path, livedata=livedata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1535, in driver_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:50,081 - WARNING - No result data for this session available on Ergast! (This is expected for recent sessions)
+2025-03-23 16:53:50,083 - WARNING - Failed to load driver list and session results!
+2025-03-23 16:53:50,121 - INFO - No cached data found for session_status_data. Loading data...
+2025-03-23 16:53:50,123 - INFO - Fetching session status data...
+2025-03-23 16:53:50,398 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:50,784 - WARNING - Failed to load session status data!
+2025-03-23 16:53:50,786 - DEBUG - Traceback for failure in session status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2032, in _load_session_status_data
+    session_status = api.session_status_data(self.api_path,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1333, in session_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:50,788 - INFO - No cached data found for lap_count. Loading data...
+2025-03-23 16:53:50,791 - INFO - Fetching lap count data...
+2025-03-23 16:53:50,993 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:51,458 - WARNING - Failed to load total lap count!
+2025-03-23 16:53:51,459 - DEBUG - Traceback for failure in total lap count
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2017, in _load_total_lap_count
+    lap_count = api.lap_count(self.api_path, livedata=livedata)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1476, in lap_count
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:51,462 - INFO - No cached data found for track_status_data. Loading data...
+2025-03-23 16:53:51,463 - INFO - Fetching track status data...
+2025-03-23 16:53:51,668 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:51,855 - WARNING - Failed to load track status data!
+2025-03-23 16:53:51,857 - DEBUG - Traceback for failure in track status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2004, in _load_track_status_data
+    track_status = api.track_status_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1277, in track_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:51,859 - INFO - No cached data found for _extended_timing_data. Loading data...
+2025-03-23 16:53:51,861 - INFO - Fetching timing data...
+2025-03-23 16:53:52,158 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:52,351 - WARNING - Failed to load timing data!
+2025-03-23 16:53:52,352 - DEBUG - Traceback for failure in lap timing data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1475, in _load_laps_data
+    = api._extended_timing_data(self.api_path, livedata=livedata)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 200, in _extended_timing_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:52,355 - INFO - No cached data found for car_data. Loading data...
+2025-03-23 16:53:52,356 - INFO - Fetching car data...
+2025-03-23 16:53:52,659 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:52,860 - WARNING - Car telemetry data is unavailable!
+2025-03-23 16:53:52,862 - INFO - No cached data found for position_data. Loading data...
+2025-03-23 16:53:52,864 - INFO - Fetching position data...
+2025-03-23 16:53:53,161 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:53,367 - WARNING - Car position data is unavailable!
+2025-03-23 16:53:53,368 - WARNING - Failed to determine `Session.t0_date`!
+2025-03-23 16:53:53,370 - INFO - No cached data found for weather_data. Loading data...
+2025-03-23 16:53:53,371 - INFO - Fetching weather data...
+2025-03-23 16:53:53,677 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:53,881 - WARNING - Failed to load weather data!
+2025-03-23 16:53:53,883 - DEBUG - Traceback for failure in weather data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2410, in _load_weather_data
+    weather_data = api.weather_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1613, in weather_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:53,885 - INFO - No cached data found for race_control_messages. Loading data...
+2025-03-23 16:53:53,887 - INFO - Fetching race control messages...
+2025-03-23 16:53:54,151 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:54,363 - WARNING - Failed to load race control messages!
+2025-03-23 16:53:54,363 - DEBUG - Traceback for failure in race control messages
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2417, in _load_race_control_messages
+    race_control_messages = api.race_control_messages(self.api_path,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1404, in race_control_messages
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:54,367 - INFO - Finished loading data for 0 drivers: []
+2025-03-23 16:53:54,369 - WARNING - No results data available for session ID 107
+2025-03-23 16:53:54,370 - ERROR - Error during migration: The data you are trying to access has not been loaded yet. See `Session.load`
+2025-03-23 16:53:54,372 - ERROR - Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 544, in fix_session
+    migrate_laps(conn, session, session_id, session_info['year'])
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 220, in migrate_laps
+    if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1290, in laps
+    return self._get_property_warn_not_loaded('_laps')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1249, in _get_property_warn_not_loaded
+    raise DataNotLoadedError(
+fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
+
+2025-03-23 16:53:54,375 - INFO - --------------------------------------------------
+2025-03-23 16:53:54,379 - INFO - Fixing session: Sprint - Qatar Grand Prix (Round 23)
+2025-03-23 16:53:54,379 - INFO - Loading data from FastF1...
+2025-03-23 16:53:54,431 - INFO - Loading detailed session data...
+2025-03-23 16:53:54,433 - INFO - Loading data for Qatar Grand Prix - Sprint [v3.5.0]
+2025-03-23 16:53:54,434 - INFO - No cached data found for session_info. Loading data...
+2025-03-23 16:53:54,436 - INFO - Fetching session info data...
+2025-03-23 16:53:54,778 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:54,938 - WARNING - Failed to load session info data!
+2025-03-23 16:53:54,940 - DEBUG - Traceback for failure in session info data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1469, in _load_session_info
+    self._session_info = api.session_info(self.api_path,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1687, in session_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:54,943 - INFO - No cached data found for driver_info. Loading data...
+2025-03-23 16:53:54,945 - INFO - Fetching driver list...
+2025-03-23 16:53:55,289 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:55,448 - WARNING - Failed to load extended driver information!
+2025-03-23 16:53:55,451 - DEBUG - Exception while loading driver list
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2259, in _drivers_from_f1_api
+    f1di = api.driver_info(self.api_path, livedata=livedata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1535, in driver_info
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:55,684 - WARNING - No result data for this session available on Ergast! (This is expected for recent sessions)
+2025-03-23 16:53:55,685 - WARNING - Failed to load driver list and session results!
+2025-03-23 16:53:55,727 - INFO - No cached data found for session_status_data. Loading data...
+2025-03-23 16:53:55,729 - INFO - Fetching session status data...
+2025-03-23 16:53:55,986 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:56,184 - WARNING - Failed to load session status data!
+2025-03-23 16:53:56,185 - DEBUG - Traceback for failure in session status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2032, in _load_session_status_data
+    session_status = api.session_status_data(self.api_path,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1333, in session_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:56,188 - INFO - No cached data found for lap_count. Loading data...
+2025-03-23 16:53:56,189 - INFO - Fetching lap count data...
+2025-03-23 16:53:56,483 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:56,827 - WARNING - Failed to load total lap count!
+2025-03-23 16:53:56,828 - DEBUG - Traceback for failure in total lap count
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2017, in _load_total_lap_count
+    lap_count = api.lap_count(self.api_path, livedata=livedata)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1476, in lap_count
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:56,831 - INFO - No cached data found for track_status_data. Loading data...
+2025-03-23 16:53:56,832 - INFO - Fetching track status data...
+2025-03-23 16:53:57,021 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:57,240 - WARNING - Failed to load track status data!
+2025-03-23 16:53:57,242 - DEBUG - Traceback for failure in track status data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2004, in _load_track_status_data
+    track_status = api.track_status_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1277, in track_status_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:57,245 - INFO - No cached data found for _extended_timing_data. Loading data...
+2025-03-23 16:53:57,247 - INFO - Fetching timing data...
+2025-03-23 16:53:57,534 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:57,850 - WARNING - Failed to load timing data!
+2025-03-23 16:53:57,852 - DEBUG - Traceback for failure in lap timing data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1475, in _load_laps_data
+    = api._extended_timing_data(self.api_path, livedata=livedata)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 200, in _extended_timing_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:57,855 - INFO - No cached data found for car_data. Loading data...
+2025-03-23 16:53:57,856 - INFO - Fetching car data...
+2025-03-23 16:53:58,053 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:58,253 - WARNING - Car telemetry data is unavailable!
+2025-03-23 16:53:58,255 - INFO - No cached data found for position_data. Loading data...
+2025-03-23 16:53:58,257 - INFO - Fetching position data...
+2025-03-23 16:53:58,545 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:58,745 - WARNING - Car position data is unavailable!
+2025-03-23 16:53:58,746 - WARNING - Failed to determine `Session.t0_date`!
+2025-03-23 16:53:58,748 - INFO - No cached data found for weather_data. Loading data...
+2025-03-23 16:53:58,749 - INFO - Fetching weather data...
+2025-03-23 16:53:59,054 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:59,322 - WARNING - Failed to load weather data!
+2025-03-23 16:53:59,325 - DEBUG - Traceback for failure in weather data
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2410, in _load_weather_data
+    weather_data = api.weather_data(self.api_path, livedata=livedata)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1613, in weather_data
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:59,328 - INFO - No cached data found for race_control_messages. Loading data...
+2025-03-23 16:53:59,330 - INFO - Fetching race control messages...
+2025-03-23 16:53:59,547 - DEBUG - Falling back to livetiming mirror (https://livetiming-mirror.fastf1.dev)
+2025-03-23 16:53:59,858 - WARNING - Failed to load race control messages!
+2025-03-23 16:53:59,860 - DEBUG - Traceback for failure in race control messages
+Traceback (most recent call last):
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\logger.py", line 151, in __wrapped
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 2417, in _load_race_control_messages
+    race_control_messages = api.race_control_messages(self.api_path,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\req.py", line 479, in _cached_api_request
+    data = func(api_path, **func_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\_api.py", line 1404, in race_control_messages
+    raise SessionNotAvailableError(
+fastf1._api.SessionNotAvailableError: No data for this session! If this session only finished recently, please try again in a few minutes.
+2025-03-23 16:53:59,863 - INFO - Finished loading data for 0 drivers: []
+2025-03-23 16:53:59,866 - WARNING - No results data available for session ID 117
+2025-03-23 16:53:59,867 - ERROR - Error during migration: The data you are trying to access has not been loaded yet. See `Session.load`
+2025-03-23 16:53:59,869 - ERROR - Traceback (most recent call last):
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 544, in fix_session
+    migrate_laps(conn, session, session_id, session_info['year'])
+  File "D:\Dev\F1LiveDashboard\backend\fix_sprint_sessions.py", line 220, in migrate_laps
+    if not hasattr(session_obj, "laps") or session_obj.laps is None or len(session_obj.laps) == 0:
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1290, in laps
+    return self._get_property_warn_not_loaded('_laps')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ylegkaya\AppData\Roaming\Python\Python312\site-packages\fastf1\core.py", line 1249, in _get_property_warn_not_loaded
+    raise DataNotLoadedError(
+fastf1.core.DataNotLoadedError: The data you are trying to access has not been loaded yet. See `Session.load`
+

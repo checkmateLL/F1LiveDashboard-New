@@ -60,10 +60,10 @@ def check_session(year, round_num, session_name):
 
 if __name__ == "__main__":
     # Check today's Sprint
-    check_session(2025, 2, "Sprint")
+    check_session(2025, 3, "Race")
     
     # Also check the Sprint Qualifying for comparison
     check_session(2025, 2, "Sprint Qualifying")
     
     # And check the qualifying session that did work
-    check_session(2025, 2, "Qualifying")
+    check_session(2025, 3, "Race")

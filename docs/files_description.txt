@@ -1,0 +1,122 @@
+📁 checkmatell-f1livedashboard/
+├── Dockerfile
+Runs the FastAPI app using uvicorn backend.main:app.
+
+├── requirements.txt
+Lists core Python dependencies like FastAPI, FastF1, Redis, Pandas, etc.
+
+├── .env.example
+Defines environment variables for SQLite path, Redis, OpenWeather API, etc.
+
+📁 backend/
+Each file powers the FastAPI API or data management services:
+
+check_f1_availability.py: CLI tool to inspect database content and preview FastF1 session data for verification.
+
+check_fastf1.py: Verifies if FastF1 can load session data and prints sample telemetry/lap info.
+
+config.py: Loads and validates .env settings—like DB path, weather API key, and Redis config.
+
+data_service.py: Core logic for querying the SQLite DB and combining it with FastF1 and weather APIs.
+
+database.py: Implements a connection pool pattern for stable and safe SQLite connections.
+
+db_connection.py: Wraps queries with automatic error handling and formats results as DataFrames.
+
+error_handling.py: Centralized FastAPI and DB exception management with logging.
+
+fix_sprint_sessions.py: CLI script to reload or repair sprint session data into your DB using FastF1.
+
+main.py: The FastAPI app entry point with routing, middleware, CORS, and startup logic.
+
+migrate_sqlite_full_2025.py: Full database seeder for 2025 season using FastF1 and storing event/session data.
+
+models.py: Pydantic schemas used for validating and serializing API responses.
+
+redis_live_service.py: Background simulator pushing mock live race/session data (telemetry, weather) to Redis.
+
+routes.py: All API endpoints for events, sessions, telemetry, lap times, standings, etc.
+
+session_id_fix.py: Small dependency patcher for injecting the correct session ID or service into routes.
+
+weather.py: Calls Open-Meteo API to fetch trackside weather conditions using lat/lon.
+
+
+📁 frontend/
+📄 app.py
+Streamlit app bootstrap file.
+
+Mounts pages and components.
+
+📁 components/
+Each file defines a reusable Streamlit visual or UI element:
+
+common_visualizations.py: Shared utility charts (bar, pie, line) used across multiple dashboard pages.
+
+countdown.py: Displays a real-time countdown timer to the next session start.
+
+event_cards.py: Renders clickable cards showing event name, date, round number, and status.
+
+navbar.py: Provides navigation logic and layout for the Streamlit sidebar/header.
+
+race_visuals.py: Includes race-related visualizations like position chart, stint comparison, and pace delta.
+
+telemetry_visuals.py: Graphs throttle, brake, gear, and speed data for comparing telemetry between laps.
+
+
+📁 pages/
+Each file is a Streamlit page (e.g. in sidebar):
+
+analytics.py: Overall race analytics dashboard combining session summaries, pace, and strategy efficiency.
+
+dnf_analysis.py: Visualizes and lists drivers who did not finish, including reasons like crashes or mechanical failures.
+
+driver_performance_comparison.py: Compares performance metrics lap-by-lap between two or more selected drivers.
+
+event_schedule.py: Displays the full F1 calendar with sessions and dates for each event.
+
+fuel_load_analysis.py: Estimates the effect of fuel loads on lap times using early stint trends.
+
+head_to_head_comparison.py: Side-by-side analysis of two drivers (often teammates) across race and qualifying.
+
+home.py: The landing page with upcoming race info, latest session status, and key summaries.
+
+lap_times.py: Lap time visualization for selected drivers including personal bests and consistency.
+
+overtakes_analysis.py: Detects and plots overtakes by comparing lap-to-lap position deltas.
+
+performance.py: Driver and team performance summary including top speeds, tire usage, and pace stability.
+
+pit_stop_performance_analysis.py: Breaks down pit stop durations and compares performance across teams.
+
+pit_stop_strategy.py: Visualizes tire stint strategy and pit timing for strategic comparison.
+
+race_analysis.py: Comprehensive race overview including pace evolution, strategy breakdowns, and positions gained/lost.
+
+race_pace_analysis.py: Detailed comparison of consistent race pace across stints and compounds.
+
+race_replay.py: Animated lap-by-lap replay of driver positions on a virtual circuit map.
+
+race_results.py: Final race standings including position, time gaps, status, and points.
+
+race_start_analysis.py: Highlights first-lap gains, launch reactions, and position changes after lights out.
+
+season_overview.py: Tracks season-long progress in the championship for drivers and constructors.
+
+standings.py: Displays current F1 driver and constructor championship standings with points and changes.
+
+strategy_comparison_analysis.py: Compares pit strategies and tire choices across teams and drivers.
+
+telemetry.py: Interactive comparison of telemetry data—throttle, brake, speed—across laps and sectors.
+
+track_position_evolution.py: Lap interval plots of driver position changes and gaps to nearest rivals.
+
+track_specific_performance.py: Evaluates driver or team performance across different circuits and seasons.
+
+weather_impact_analysis.py: Analyzes how temperature, wind, rain, and humidity influenced pace and incidents.
+
+🗃️ logs/ (empty)
+Likely used for logging.
+
+🛠️ tools/ (empty)
+Placeholder for future scripts.

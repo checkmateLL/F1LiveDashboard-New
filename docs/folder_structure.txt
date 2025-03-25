@@ -1,0 +1,57 @@
+Directory structure:
+└── checkmatell-f1livedashboard-new/
+    ├── Dockerfile
+    ├── requirements.txt
+    ├── .env.example
+    ├── backend/
+    │   ├── check_f1_availability.py
+    │   ├── check_fastf1.py
+    │   ├── config.py
+    │   ├── data_service.py
+    │   ├── database.py
+    │   ├── db_connection.py
+    │   ├── error_handling.py
+    │   ├── fix_sprint_sessions.py
+    │   ├── main.py
+    │   ├── migrate_sqlite_full_2025.py
+    │   ├── models.py
+    │   ├── redis_live_service.py
+    │   ├── routes.py
+    │   ├── session_id_fix.py
+    │   └── weather.py
+    ├── frontend/
+    │   ├── app.py
+    │   ├── components/
+    │   │   ├── common_visualizations.py
+    │   │   ├── countdown.py
+    │   │   ├── event_cards.py
+    │   │   ├── navbar.py
+    │   │   ├── race_visuals.py
+    │   │   └── telemetry_visuals.py
+    │   └── pages/
+    │       ├── analytics.py
+    │       ├── dnf_analysis.py
+    │       ├── driver_performance_comparison.py
+    │       ├── event_schedule.py
+    │       ├── fuel_load_analysis.py
+    │       ├── head_to_head_comparison.py
+    │       ├── home.py
+    │       ├── lap_times.py
+    │       ├── overtakes_analysis.py
+    │       ├── performance.py
+    │       ├── pit_stop_performance_analysis.py
+    │       ├── pit_stop_strategy.py
+    │       ├── race_analysis.py
+    │       ├── race_pace_analysis.py
+    │       ├── race_replay.py
+    │       ├── race_results.py
+    │       ├── race_start_analysis.py
+    │       ├── season_overview.py
+    │       ├── standings.py
+    │       ├── strategy_comparison_analysis.py
+    │       ├── telemetry.py
+    │       ├── track_position_evolution.py
+    │       ├── track_specific_performance.py
+    │       └── weather_impact_analysis.py
+    ├── logs/
+    └── tools/
